@@ -5,7 +5,47 @@
 document.addEventListener('DOMContentLoaded', () => {
     initCursor();
     initIntro();
+    initHeroAnimations();
 });
+
+// ── HERO LANDING ANIMATIONS ──
+function initHeroAnimations() {
+    const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+
+    tl.to(".hero-title", { 
+        opacity: 1, 
+        scale: 1, 
+        duration: 2.5,
+        letterSpacing: "40px"
+    })
+    .to(".hero-slogan", { 
+        opacity: 1, 
+        duration: 1.5,
+        y: -10
+    }, "-=1.5");
+
+    // Parallax effect on title
+    document.addEventListener('mousemove', (e) => {
+        const xPercent = (e.clientX / window.innerWidth) - 0.5;
+        const yPercent = (e.clientY / window.innerHeight) - 0.5;
+        
+        gsap.to(".hero-title", { 
+            x: xPercent * 50, 
+            y: yPercent * 50, 
+            rotationY: xPercent * 10,
+            rotationX: -yPercent * 10,
+            duration: 1.2,
+            ease: "power2.out"
+        });
+        
+        gsap.to(".hero-slogan", {
+            x: xPercent * 20,
+            y: yPercent * 20,
+            duration: 1.5,
+            ease: "power1.out"
+        });
+    });
+}
 
 // ── CUSTOM CURSOR ──
 function initCursor() {
@@ -118,6 +158,10 @@ function initIntro() {
 // ── UI HELPERS ──
 function toggleCart() {
     document.getElementById('cart-panel').classList.toggle('open');
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('light-mode');
 }
 
 function showToast(msg) {

@@ -14,12 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initGSAPAnimations();
 });
 
+let lenisInstance;
+
 // ── LENIS SMOOTH SCROLL ──
 function initLenis() {
     if (typeof Lenis === 'undefined') return;
-    const lenis = new Lenis();
+    lenisInstance = new Lenis();
     function raf(time) {
-        lenis.raf(time);
+        lenisInstance.raf(time);
         requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
@@ -72,6 +74,26 @@ function initThreeNav() {
         gsap.to(ball.scale, { x: 1, y: 1, z: 1, duration: 0.8, ease: "expo.out" });
         gsap.to(material, { emissiveIntensity: 0.1, duration: 0.5 });
     });
+
+    // Click to scroll to top
+    container.addEventListener('click', () => {
+        if (lenisInstance) {
+            lenisInstance.scrollTo(0);
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    const miniLogo = document.getElementById('nav-logo-mini');
+    if (miniLogo) {
+        miniLogo.addEventListener('click', () => {
+            if (lenisInstance) {
+                lenisInstance.scrollTo(0);
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
 }
 
 // ── GSAP SCROLL TRIGGERS ──
