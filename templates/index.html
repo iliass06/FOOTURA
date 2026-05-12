@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTURA | The Cinematic Football Marketplace</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- EXTERNAL LIBS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+</head>
+<body>
+
+    <!-- CUSTOM CURSOR -->
+    <div id="custom-cursor"></div>
+
+    <!-- INTRO CINEMATIC -->
+    <div id="intro-overlay">
+        <canvas id="intro-canvas"></canvas>
+        <div class="intro-logo">FUTURA</div>
+    </div>
+
+    <!-- NAVIGATION (3D BALL) -->
+    <nav id="nav-container">
+        <div id="nav-3d-ball"></div>
+        <a href="#vestiaire" class="nav-link">JERSEYS</a>
+        <a href="#sphere" class="nav-link">BALLS</a>
+        <a href="#legendes" class="nav-link">CARDS</a>
+        <a href="#lifestyle" class="nav-link">LIFESTYLE</a>
+    </nav>
+
+    <!-- CART TOGGLE -->
+    <div class="cart-toggle" onclick="toggleCart()">CART (0)</div>
+
+    <!-- CART PANEL -->
+    <div id="cart-panel">
+        <h2 style="font-family: var(--font-accent); color: var(--jungle-bright); margin-bottom: 30px; letter-spacing: 5px;">YOUR SQUAD</h2>
+        <div id="cart-items"></div>
+        <div id="cart-total" style="margin-top: 40px; border-top: 1px solid rgba(242, 232, 207, 0.1); padding-top: 20px;"></div>
+        <button class="btn-futura" style="width: 100%; margin-top: 30px;" onclick="checkout()">DISPATCH SQUAD</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content">
+        
+        <!-- SECTION 01: VESTIAIRE -->
+        <section id="vestiaire">
+            <div class="stadium-bg"></div>
+            <div class="container">
+                <h2 class="section-title">JERSEYS</h2>
+                <p style="margin-bottom: 50px; opacity: 0.6; max-width: 600px; font-size: 1.1rem;">
+                    Beyond the fabric. We curate the history of the game through iconic silhouettes and modern engineering. From the mud-stained retro classics to the aerodynamic precision of 24/25.
+                </p>
+                
+                <div class="filters" style="margin-bottom: 60px; display: flex; gap: 30px; flex-wrap: wrap;">
+                    <div class="filter-group">
+                        <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.8;">CONTINENT</label>
+                        <select onchange="loadProducts('jerseys', this.value)" style="background: var(--gray-dark); color: var(--cream-soda); border: 1px solid rgba(242, 232, 207, 0.2); padding: 12px 20px; font-family:var(--font-accent); letter-spacing:1px; outline:none; border-radius: 4px;">
+                            <option value="">ALL CONTINENTS</option>
+                            <option value="europe">EUROPE</option>
+                            <option value="africa">AFRICA</option>
+                            <option value="south-am">SOUTH AMERICA</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.8;">LEAGUE</label>
+                        <select onchange="loadProductsByLeague(this.value)" style="background: var(--gray-dark); color: var(--cream-soda); border: 1px solid rgba(242, 232, 207, 0.2); padding: 12px 20px; font-family:var(--font-accent); letter-spacing:1px; outline:none; border-radius: 4px;">
+                            <option value="">ALL LEAGUES</option>
+                            <option value="botola">BOTOLA PRO</option>
+                            <option value="pl">PREMIER LEAGUE</option>
+                            <option value="laliga">LA LIGA</option>
+                            <option value="ligue1">LIGUE 1</option>
+                            <option value="seriea">SERIE A</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="jerseys-grid" class="product-grid"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 02: SPHERE -->
+        <section id="sphere">
+            <div class="stadium-bg"></div>
+            <div class="container">
+                <h2 class="section-title">BALLS</h2>
+                <p style="margin-bottom: 50px; opacity: 0.6; max-width: 600px; font-size: 1.1rem;">
+                    The heart of the pitch. Aerodynamics meets artistry. Every ball in our collection is a testament to the evolution of the beautiful game.
+                </p>
+                <div id="balls-grid" class="product-grid"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 03: LEGENDES -->
+        <section id="legendes">
+            <div class="stadium-bg"></div>
+            <div class="container">
+                <h2 class="section-title">CARDS</h2>
+                <p style="margin-bottom: 50px; opacity: 0.6; max-width: 600px; font-size: 1.1rem;">
+                    Immortalize the greats. Our gamified rarity system brings you closer to the icons who defined eras. Open the vault. Reveal the cards.
+                </p>
+                <div id="cards-grid" class="product-grid"></div>
+            </div>
+        </section>
+
+        <!-- STORYTELLING: THE TIMELINE -->
+        <section class="story-section">
+            <h3 style="font-family: var(--font-accent); font-size: 4rem; text-align: center; margin-bottom: 100px; letter-spacing: 10px;">LEGENDARY MOMENTS</h3>
+            <div class="timeline">
+                <div class="timeline-item active">
+                    <h4 style="font-family:var(--font-accent); color:var(--jungle-bright); font-size:2rem;">1970</h4>
+                    <p>Pele's Brazil defines the "Beautiful Game" in Mexico. The yellow jersey becomes a global icon of joy and technical perfection.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4 style="font-family:var(--font-accent); color:var(--jungle-bright); font-size:2rem;">1998</h4>
+                    <p>Zidane's headers in Paris. A nation united under the 'Bleu, Blanc, Rouge'. The birth of a new era for European dominance.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4 style="font-family:var(--font-accent); color:var(--jungle-bright); font-size:2rem;">2022</h4>
+                    <p>The Atlas Lions roar in Qatar. Morocco breaks barriers, becoming the first African nation to reach the final four. History rewritten.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 04: LIFESTYLE & CUSTOM -->
+        <section id="lifestyle">
+            <div class="stadium-bg"></div>
+            <div class="container">
+                <h2 class="section-title">Lifestyle</h2>
+                <div id="accs-grid" class="product-grid"></div>
+                
+                <div class="custom-request-box" style="margin-top: 150px; background: var(--gray-dark); padding: 80px; border-left: 5px solid var(--jungle-bright); position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
+                    <div style="position: absolute; top: -30px; left: 80px; background: var(--jungle-green); padding: 10px 30px; font-family: var(--font-accent); letter-spacing: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">CUSTOM REQUEST</div>
+                    <h3 style="font-family: var(--font-accent); font-size: 3rem; margin-bottom: 20px; color: var(--cream-soda);">THE SCOUTING NETWORK</h3>
+                    <p style="margin-bottom: 40px; opacity: 0.8; max-width: 600px;">
+                        Seeking a 1994 Nigerian Away shirt? A specific limited edition Predator? Our global network of collectors and scouts is at your service. If it exists in the football universe, we will find it.
+                    </p>
+                    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <input type="text" id="cr-name" placeholder="IDENTIFICATION (NAME)" style="background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; font-family:var(--font-accent); letter-spacing:2px; outline:none;">
+                        <input type="text" id="cr-contact" placeholder="COMMS (EMAIL/PHONE)" style="background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; font-family:var(--font-accent); letter-spacing:2px; outline:none;">
+                    </div>
+                    <textarea id="cr-msg" placeholder="OBJECTIVE (DESCRIBE THE PRODUCT...)" style="width: 100%; height: 150px; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; margin-top: 30px; font-family:var(--font-accent); letter-spacing:2px; outline:none; resize: none;"></textarea>
+                    <button class="btn-futura" style="margin-top: 40px; border-color: var(--jungle-bright); width: 100%;" onclick="submitCustomRequest()">INTITIATE SEARCH</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS MODULES -->
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/products.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/atelier.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>
+>
+l>

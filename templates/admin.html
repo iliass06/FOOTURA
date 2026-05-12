@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTURA | ADMIN PANEL</title>
+    <style>
+        :root {
+            --neon: #39ff14;
+            --gold: #d4af37;
+            --dark: #0a0a0a;
+            --gray: #1a1a1a;
+        }
+        body {
+            background: var(--dark);
+            color: white;
+            font-family: 'Barlow', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: var(--neon); text-transform: uppercase; letter-spacing: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--gray); padding: 20px; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #333; }
+        th { color: var(--gold); }
+        .btn { background: var(--neon); color: black; border: none; padding: 10px 20px; cursor: pointer; text-transform: uppercase; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>FUTURA ADMIN</h1>
+    <a href="/" style="color: white; text-decoration: none; margin-bottom: 20px; display: block;">← BACK TO STADIUM</a>
+
+    <div class="grid">
+        <div class="card">
+            <h2>RECENT ORDERS</h2>
+            <table id="orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>TOTAL</th>
+                        <th>STATUS</th>
+                        <th>DATE</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>QUICK ADD PRODUCT</h2>
+            <form id="add-product-form">
+                <input type="text" id="p-name" placeholder="Name" required style="width: 100%; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; padding: 5px;">
+                <input type="number" id="p-price" placeholder="Price" required style="width: 100%; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; padding: 5px;">
+                <select id="p-cat" style="width: 100%; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; padding: 5px;">
+                    <option value="1">Jerseys</option>
+                    <option value="2">Balls</option>
+                    <option value="3">Cards</option>
+                    <option value="4">Accessories</option>
+                </select>
+                <button type="submit" class="btn">ADD TO STOCK</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function fetchOrders() {
+            const res = await fetch('/api/admin/orders');
+            const orders = await res.json();
+            const tbody = document.querySelector('#orders-table tbody');
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td>#${o.id}</td>
+                    <td>${o.total} MAD</td>
+                    <td style="color: ${o.status === 'pending' ? 'var(--gold)' : 'var(--neon)'}">${o.status}</td>
+                    <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('add-product-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('p-name').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                category_id: parseInt(document.getElementById('p-cat').value),
+                description: 'Added via admin',
+                emoji: '⚽',
+                badge: 'new',
+                season: '2024-25',
+                continent: 'europe'
+            };
+            const res = await fetch('/api/admin/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('Product added!');
+                e.target.reset();
+            }
+        };
+
+        fetchOrders();
+    </script>
+</body>
+</html>
