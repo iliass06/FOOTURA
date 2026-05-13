@@ -15,8 +15,7 @@ function initHeroAnimations() {
     tl.to(".hero-title", { 
         opacity: 1, 
         scale: 1, 
-        duration: 2.5,
-        letterSpacing: "40px"
+        duration: 2.5
     })
     .to(".hero-slogan", { 
         opacity: 1, 
@@ -24,19 +23,10 @@ function initHeroAnimations() {
         y: -10
     }, "-=1.5");
 
-    // Parallax effect on title
+    // Parallax effect on slogan only (Title is now FIXED as requested)
     document.addEventListener('mousemove', (e) => {
         const xPercent = (e.clientX / window.innerWidth) - 0.5;
         const yPercent = (e.clientY / window.innerHeight) - 0.5;
-        
-        gsap.to(".hero-title", { 
-            x: xPercent * 50, 
-            y: yPercent * 50, 
-            rotationY: xPercent * 10,
-            rotationX: -yPercent * 10,
-            duration: 1.2,
-            ease: "power2.out"
-        });
         
         gsap.to(".hero-slogan", {
             x: xPercent * 20,

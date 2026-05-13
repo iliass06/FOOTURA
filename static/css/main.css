@@ -60,64 +60,57 @@ body {
     font-family: var(--font-accent);
     font-size: 18vw;
     color: var(--cream-soda);
-    letter-spacing: -0.05em; /* Tightened for single word look */
+    letter-spacing: -0.01em; /* Reduced spacing */
     margin-bottom: 0;
     line-height: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 0.02em; /* Tiny gap for tight layout */
     white-space: nowrap;
     opacity: 0;
     transform: scale(0.95);
     z-index: 10;
 }
 
-/* Radiant Letter Reflections for F and T */
-.letter-ref {
-    position: relative;
-    display: inline-block;
-}
-
-.letter-ref[data-letter="F"] {
-    text-shadow: 0.1em 0 0.2em rgba(255, 230, 150, 0.3);
-}
-
-.letter-ref[data-letter="T"] {
-    text-shadow: -0.1em 0 0.2em rgba(255, 230, 150, 0.3);
-}
-
-.infinity-cinematic {
-    display: inline-flex;
+.oo-geometric {
+    display: flex;
     align-items: center;
-    width: 1.1em; /* More condensed width */
-    height: 1em;
-    margin: 0 -0.15em; /* Negative margins to overlap slightly for cohesion */
+    justify-content: center;
+    gap: 0.05em;
     position: relative;
     z-index: 20;
-    transform: translateY(2%);
 }
 
-.infinity-cinematic svg {
-    width: 100%;
-    height: 100%;
-    filter: 
-        drop-shadow(0 0 20px rgba(255, 255, 255, 0.9))
-        drop-shadow(0 0 50px rgba(255, 215, 0, 0.6))
-        drop-shadow(0 0 100px rgba(255, 165, 0, 0.3));
+.oo-geometric .ball-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.85em; /* Match text height */
+    height: 0.85em;
 }
 
-.tendril {
-    stroke: #fff;
-    stroke-linecap: round;
-    opacity: 0.8;
+/* Adjust visual size of the laced ball to match the hexagon ball */
+.oo-geometric .ball-wrapper:first-child {
+    transform: scale(0.9); /* Reset to normal size */
 }
 
-.t1 { stroke: #fff; opacity: 1; filter: blur(1px); }
-.t2 { stroke: #fff7e6; opacity: 0.6; stroke-dasharray: 200; animation: swirl 4s infinite linear; }
-.t3 { stroke: #ffd966; opacity: 0.4; stroke-dasharray: 150; animation: swirl 6s infinite linear reverse; }
+.oo-geometric svg {
+    width: 100% !important;
+    height: 100% !important;
+    color: inherit;
+    transform-box: fill-box !important; /* Force rotation around the shape bounds */
+    transform-origin: center !important; /* Center the rotation on the shape */
+    animation: spin 15s linear infinite;
+    filter: drop-shadow(0 0.05em 0.1em rgba(0,0,0,0.4));
+}
 
-@keyframes swirl {
-    to { stroke-dashoffset: 1000; }
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+.history-ball, .future-ball {
+    opacity: 1;
 }
 
 #hero-landing {
@@ -195,9 +188,9 @@ body {
     left: 40px;
     z-index: 2002; /* Above everything */
     font-family: var(--font-accent);
-    font-size: 2rem; /* Increased size */
+    font-size: 2.2rem; /* Increased size */
     color: var(--cream-soda);
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     cursor: pointer;
     transition: all 0.4s ease;
     user-select: none;
@@ -206,6 +199,31 @@ body {
 #nav-logo-mini .oo-green {
     color: var(--jungle-bright);
     text-shadow: 0 0 15px rgba(45, 90, 74, 0.8);
+}
+
+#nav-logo-mini:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 20px var(--cream-glow);
+}
+
+#nav-logo-mini .oo-green::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--jungle-bright);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+#nav-logo-mini:hover .oo-green::after {
+    transform: scaleX(1);
+}
+
+#nav-logo-mini:hover .oo-green::after {
+    transform: scaleX(1);
 }
 
 #nav-logo-mini:hover {
@@ -449,55 +467,38 @@ body.light-mode .hero-bg-overlay {
 body.light-mode .hero-title, 
 body.light-mode .hero-slogan,
 body.light-mode #nav-logo-mini,
-body.light-mode .nav-link {
-    color: var(--jungle-bright) !important;
-    text-shadow: none !important;
+body.light-mode .oo-svg {
+    filter: drop-shadow(0 0 15px rgba(27, 61, 47, 0.2)) !important;
+}
+
+body.light-mode .ball-outer-shell,
+body.light-mode .ball-seams,
+body.light-mode .ball-panel {
+    stroke: var(--jungle-bright) !important;
+}
+
+body.light-mode .ball-panel-center {
+    fill: var(--jungle-green) !important;
+    stroke: var(--jungle-bright) !important;
+}
+
+body.light-mode .ball-connector-line {
+    stroke: var(--jungle-bright) !important;
 }
 
 body.light-mode #nav-logo-mini .oo-green {
-    color: var(--dark) !important; /* Restore cream OOs */
+    color: #f2e8cf !important; /* Fixed Cream OO for light mode */
     text-shadow: none !important;
-}
-
-body.light-mode .infinity-cinematic {
-    filter: none !important;
-}
-
-body.light-mode .infinity-cinematic svg {
-    filter: 
-        drop-shadow(0 0 10px rgba(255, 255, 255, 1))
-        drop-shadow(0 0 20px rgba(255, 215, 0, 0.4)) !important;
-}
-
-body.light-mode .infinity-cinematic .tendril {
-    fill: none !important;
-    stroke: #fff !important; /* Keep white for cinematic look */
-}
-
-body.light-mode .infinity-cinematic .t1 {
-    opacity: 1 !important;
-    filter: blur(0.5px) !important;
-}
-
-body.light-mode .infinity-cinematic .t2 {
-    opacity: 0.8 !important;
-    stroke-dasharray: 200 !important;
-    animation: swirl 4s infinite linear !important;
-}
-
-body.light-mode .infinity-cinematic .t3 {
-    opacity: 0.6 !important;
-    stroke-dasharray: 150 !important;
-    animation: swirl 6s infinite linear reverse !important;
 }
 
 body.light-mode #theme-toggle,
 body.light-mode .cart-toggle {
-    background: var(--dark) !important;
-    color: var(--jungle-bright) !important;
-    border: 1px solid var(--jungle-bright) !important;
-    box-shadow: none !important;
+    background: #f2e8cf !important; /* Cream background */
+    color: #1b3d2f !important; /* Dark Green text */
+    border: 1.5px solid #1b3d2f !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
 }
+
 
 body.light-mode .hero-slogan {
     font-weight: 600 !important;

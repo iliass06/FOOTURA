@@ -251,7 +251,7 @@ def _seed_data(db):
         VALUES (?,?,?,?,?,?,?,?)''', accs)
 
     # Coupons
-    db.executemany('INSERT INTO coupons (code, discount_percent) VALUES (?,?)', [('UCL30', 30), ('FUTURA25', 25)])
+    db.executemany('INSERT INTO coupons (code, discount_percent) VALUES (?,?)', [('UCL30', 30), ('FOOTURA25', 25)])
 
     # Admin User (password: admin123 - for demo purposes, hash it properly in real app)
     # Simple hash for now or just plain text for this local dev project as per "easy local development"
