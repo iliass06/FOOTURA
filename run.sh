@@ -1,5 +1,4 @@
 #!/bin/bash
 source venv/bin/activate
 export FLASK_APP=app.py
-export FLASK_ENV=development
-python -m flask run
+python -m flask run --debug

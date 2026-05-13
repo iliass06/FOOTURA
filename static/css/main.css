@@ -608,3 +608,68 @@ body.light-mode .sun-icon { opacity: 0; transform: rotate(90deg); }
 }
 
 
+/* ══════════════════════════════════════════════════════
+   FUTURA | EXACT GOLD OVERRIDES (#c9963f)
+   ══════════════════════════════════════════════════════ */
+:root {
+    --gold-exact: #c9963f;
+}
+
+/* 1. SLOGAN: Gold and increased weight */
+.hero-slogan {
+    color: var(--gold-exact) !important;
+    font-weight: 600 !important;
+}
+
+/* 2. BIG OO: Gold only for the SVG balls */
+.oo-geometric svg {
+    color: var(--gold-exact) !important;
+}
+
+/* 3. SMALL OO: Gold in Dark Mode */
+#nav-logo-mini .oo-green {
+    color: var(--gold-exact) !important;
+    text-shadow: 0 0 10px rgba(201, 150, 63, 0.5) !important;
+}
+#nav-logo-mini .oo-green::after {
+    background: var(--gold-exact) !important;
+}
+
+/* 4. SMALL OO: Gold specifically in Light Mode */
+body.light-mode #nav-logo-mini .oo-green {
+    color: var(--gold-exact) !important;
+    text-shadow: none !important;
+}
+
+/* 5. MENU: Gold for links (Jerseys, Balls, Cards, etc.) */
+.nav-link {
+    color: var(--gold-exact) !important;
+}
+.nav-link:hover, .nav-link.active {
+    text-shadow: 0 0 15px rgba(201, 150, 63, 0.5) !important;
+}
+
+/* 6. BUTTONS: Theme & Cart */
+#theme-toggle, .cart-toggle {
+    background: var(--gold-exact) !important;
+    color: #1e2522 !important;
+    border-color: var(--gold-exact) !important;
+}
+#theme-toggle:hover, .cart-toggle:hover {
+    background: #f2e8cf !important;
+    color: #1e2522 !important;
+}
+
+/* 7. LIGHT MODE BUTTONS EXPLICIT */
+body.light-mode #theme-toggle,
+body.light-mode .cart-toggle {
+    background: var(--gold-exact) !important;
+    color: var(--cream-soda) !important;
+    border-color: var(--gold-exact) !important;
+}
+body.light-mode #theme-toggle:hover,
+body.light-mode .cart-toggle:hover {
+    background: var(--jungle-green) !important;
+    color: var(--cream-soda) !important;
+}
+

@@ -42,10 +42,10 @@ function initThreeNav() {
     // Ball Geometry
     const geometry = new THREE.IcosahedronGeometry(1, 1);
     const material = new THREE.MeshPhongMaterial({
-        color: 0x1b3d2f, // Jungle Green
+        color: 0xc9963f, 
         wireframe: true,
-        emissive: 0xf2e8cf, // Cream Soda
-        emissiveIntensity: 0.1
+        emissive: 0xc9963f,
+        emissiveIntensity: 0.2
     });
     const ball = new THREE.Mesh(geometry, material);
     scene.add(ball);
