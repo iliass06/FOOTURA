@@ -3,104 +3,836 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FUTURA | ADMIN PANEL</title>
+    <title>FUTURA | ADMIN DASHBOARD</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&family=Bebas+Neue&display=swap');
+        
         :root {
-            --neon: #39ff14;
-            --gold: #d4af37;
-            --dark: #0a0a0a;
-            --gray: #1a1a1a;
+            --dark: #1e2522;
+            --gray-dark: #2a3530;
+            --cream-soda: #f2e8cf;
+            --gold-exact: #c9963f;
+            --jungle-bright: #4ade80;
+            --font-main: 'Barlow', sans-serif;
+            --font-accent: 'Bebas Neue', cursive;
         }
+
         body {
             background: var(--dark);
-            color: white;
-            font-family: 'Barlow', sans-serif;
+            color: var(--cream-soda);
+            font-family: var(--font-main);
             margin: 0;
-            padding: 20px;
+            display: flex;
+            min-height: 100vh;
         }
-        h1 { color: var(--neon); text-transform: uppercase; letter-spacing: 5px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: var(--gray); padding: 20px; border: 1px solid #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #333; }
-        th { color: var(--gold); }
-        .btn { background: var(--neon); color: black; border: none; padding: 10px 20px; cursor: pointer; text-transform: uppercase; font-weight: bold; }
+
+        /* SIDEBAR */
+        aside {
+            width: 280px;
+            background: var(--gray-dark);
+            border-right: 1px solid rgba(201, 150, 63, 0.2);
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            padding: 0 40px;
+            font-family: var(--font-accent);
+            color: var(--gold-exact);
+            font-size: 2.5rem;
+            letter-spacing: 5px;
+            margin-bottom: 60px;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav li {
+            padding: 20px 40px;
+            cursor: pointer;
+            font-family: var(--font-accent); letter-spacing: 3px;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            opacity: 0.6;
+        }
+
+        nav li:hover, nav li.active {
+            opacity: 1;
+            background: rgba(201, 150, 63, 0.05);
+            border-left-color: var(--gold-exact);
+            color: var(--gold-exact);
+        }
+
+        /* MAIN CONTENT */
+        main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 60px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-family: var(--font-accent);
+            font-size: 3rem;
+            letter-spacing: 5px;
+            color: var(--gold-exact);
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .btn-action {
+            background: transparent;
+            color: var(--gold-exact);
+            border: 1px solid var(--gold-exact);
+            padding: 12px 25px;
+            cursor: pointer;
+            font-family: var(--font-accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover {
+            background: var(--gold-exact);
+            color: var(--dark);
+        }
+
+        .btn-delete {
+            color: #ff4444;
+            border-color: #ff4444;
+        }
+
+        .btn-delete:hover {
+            background: #ff4444;
+            color: white;
+        }
+
+        /* CARDS & TABLES */
+        .card {
+            background: var(--gray-dark);
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 20px;
+            border-bottom: 1px solid rgba(242, 232, 207, 0.1);
+        }
+
+        th {
+            font-family: var(--font-accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold-exact);
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            font-family: var(--font-accent);
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            outline: none;
+            background: var(--dark);
+            cursor: pointer;
+        }
+
+        .status-badge option {
+            background: var(--gray-dark);
+            color: var(--cream-soda);
+            padding: 10px;
+        }
+
+        .status-pending, .status-new { border-color: var(--gold-exact); color: var(--gold-exact); }
+        .status-completed, .status-accepted { border-color: var(--jungle-bright); color: var(--jungle-bright); }
+        .status-cancelled { border-color: #ff4444; color: #ff4444; }
+
+        /* FORMS */
+        .input-futura {
+            width: 100%;
+            background: var(--dark);
+            border: 1px solid rgba(242, 232, 207, 0.1);
+            color: var(--cream-soda);
+            padding: 15px;
+            font-family: var(--font-main);
+            outline: none;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .input-futura:focus { border-color: var(--gold-exact); }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        /* TOAST */
+        #toast {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            padding: 20px 40px;
+            background: var(--gold-exact);
+            color: var(--dark);
+            font-family: var(--font-accent);
+            letter-spacing: 2px;
+            transform: translateY(150%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        #toast.show { transform: translateY(0); }
     </style>
 </head>
 <body>
-    <h1>FOOTURA ADMIN</h1>
-    <a href="/" style="color: white; text-decoration: none; margin-bottom: 20px; display: block;">← BACK TO STADIUM</a>
 
-    <div class="grid">
-        <div class="card">
-            <h2>RECENT ORDERS</h2>
-            <table id="orders-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>TOTAL</th>
-                        <th>STATUS</th>
-                        <th>DATE</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+    <aside>
+        <div class="logo" onclick="window.location.href='/'" style="cursor: pointer; font-size: 2.2rem;">
+            F<span style="color: var(--cream-soda);">OO</span>TURA
+        </div>
+        <nav>
+            <ul>
+                <li class="active" onclick="switchTab('orders')">ORDERS</li>
+                <li onclick="switchTab('users')">SQUAD (USERS)</li>
+                <li onclick="switchTab('reviews')">INTEL (REVIEWS)</li>
+                <li onclick="switchTab('custom')">SCOUTING (CUSTOM)</li>
+                <li onclick="switchTab('coupons')">TACTICS (COUPONS)</li>
+                <li onclick="switchTab('add-product')">DEPLOY PRODUCT</li>
+            </ul>
+        </nav>
+        <div style="margin-top: auto; padding: 0 40px; margin-bottom: 40px;">
+            <button class="btn-action" style="width: 100%; margin-bottom: 20px;" onclick="window.location.href='/'">BACK TO STADIUM</button>
+            <button class="btn-action" style="width: 100%; opacity: 0.4; border: none;" onclick="handleLogout()">LOGOUT</button>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <h1 id="tab-title">ORDERS</h1>
+            <div id="stats-header" style="text-align: right; font-family: var(--font-accent); letter-spacing: 2px; color: var(--gold-exact);">
+                SYSTEM ONLINE
+            </div>
+        </header>
+
+        <!-- ORDERS TAB -->
+        <section id="orders" class="tab-content active">
+            <div class="card">
+                <table id="orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>USER</th>
+                            <th>TOTAL</th>
+                            <th>STATUS</th>
+                            <th>DATE</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- USERS TAB -->
+        <section id="users" class="tab-content">
+            <div class="card">
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>NAME</th>
+                            <th>USERNAME</th>
+                            <th>EMAIL</th>
+                            <th>ROLE</th>
+                            <th>JOINED</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- REVIEWS TAB -->
+        <section id="reviews" class="tab-content">
+            <div class="card">
+                <table id="reviews-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>USER</th>
+                            <th>RATING</th>
+                            <th>COMMENT</th>
+                            <th>DATE</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CUSTOM REQUESTS TAB -->
+        <section id="custom" class="tab-content">
+            <div class="card">
+                <table id="custom-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>CONTACT</th>
+                            <th>OBJECTIVE</th>
+                            <th>STATUS</th>
+                            <th>DATE</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- COUPONS TAB -->
+        <section id="coupons" class="tab-content">
+            <div class="form-grid">
+                <div class="card">
+                    <h2 style="font-family: var(--font-accent); letter-spacing: 3px;">CREATE NEW TACTIC</h2>
+                    <form id="add-coupon-form">
+                        <label>CODE (e.g. FINALE30)</label>
+                        <input type="text" id="c-code" required class="input-futura">
+                        <label>DISCOUNT PERCENT</label>
+                        <input type="number" id="c-pct" required min="1" max="100" class="input-futura">
+                        <button type="submit" class="btn-action" style="width: 100%;">DEPLOY COUPON</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h2 style="font-family: var(--font-accent); letter-spacing: 3px;">ACTIVE COUPONS</h2>
+                    <table id="coupons-table">
+                        <thead>
+                            <tr>
+                                <th>CODE</th>
+                                <th>OFF %</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADD PRODUCT TAB -->
+        <section id="add-product" class="tab-content">
+            <div class="card">
+                <h2 style="font-family: var(--font-accent); letter-spacing: 3px; margin-bottom: 30px;">DEPLOY NEW EQUIPMENT</h2>
+                <form id="new-product-form" class="form-grid">
+                    <div class="full-width">
+                        <label>CATEGORY</label>
+                        <select id="p-cat" class="input-futura">
+                            <option value="1">JERSEYS</option>
+                            <option value="2">BALLS</option>
+                            <option value="3">BOOTS</option>
+                            <option value="4">CARDS</option>
+                            <option value="5">LIFESTYLE</option>
+                        </select>
+                    </div>
+
+                    <div class="full-width">
+                        <label>PRODUCT NAME</label>
+                        <input type="text" id="p-name" required class="input-futura">
+                    </div>
+
+                    <div>
+                        <label>PRICE (MAD)</label>
+                        <input type="number" id="p-price" required class="input-futura">
+                    </div>
+
+                    <!-- TACTICAL FILTERS -->
+                    <div id="league-group" class="input-group" style="display: none;">
+                        <label>LEAGUE</label>
+                        <select id="p-league" class="input-futura">
+                            <option value="laliga">LA LIGA</option>
+                            <option value="pl">PREMIER LEAGUE</option>
+                            <option value="ligue1">LIGUE 1</option>
+                            <option value="bundesliga">BUNDESLIGA</option>
+                            <option value="seriea">SERIE A</option>
+                            <option value="botola">BOTOLA PRO</option>
+                            <option value="nations">INTERNATIONAL</option>
+                        </select>
+                    </div>
+
+                    <div id="continent-group" class="input-group">
+                        <label>CONTINENT</label>
+                        <select id="p-continent" class="input-futura">
+                            <option value="africa">AFRICA</option>
+                            <option value="europe">EUROPE</option>
+                            <option value="america">AMERICA</option>
+                            <option value="asia">ASIA</option>
+                            <option value="australia">AUSTRALIA</option>
+                        </select>
+                    </div>
+
+                    <div id="brand-group" class="input-group" style="display: none;">
+                        <label>BRAND</label>
+                        <select id="p-brand" class="input-futura">
+                            <option value="nike">NIKE</option>
+                            <option value="adidas">ADIDAS</option>
+                            <option value="puma">PUMA</option>
+                            <option value="newbalance">NEW BALANCE</option>
+                            <option value="umbro">UMBRO</option>
+                            <option value="kipsta">KIPSTA</option>
+                        </select>
+                    </div>
+
+                    <div id="card-type-group" class="input-group" style="display: none;">
+                        <label>CARD TYPE</label>
+                        <select id="p-card-type" class="input-futura">
+                            <option value="iconic">ICONIC</option>
+                            <option value="legends">LEGENDS</option>
+                            <option value="standard">STANDARD</option>
+                        </select>
+                    </div>
+
+                    <div class="full-width">
+                        <label>BROWSE PC FILES</label>
+                        <input type="file" id="p-file" accept="image/*" class="input-futura" style="border: 1px dashed rgba(201,150,63,0.3);">
+                    </div>
+                    <div class="full-width">
+                        <button type="submit" class="btn-action" style="width: 100%; background: var(--gold-exact); color: var(--dark);">DEPLOY TO STADIUM</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <!-- ORDER DETAILS MODAL -->
+        <div id="order-details-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(10px);" onclick="if(event.target === this) closeOrderModal();">
+            <div class="modal-content" style="background: var(--gray-dark); padding: 50px; max-width: 600px; width: 90%; border: 2px solid var(--gold-exact); position: relative; max-height: 90vh; overflow-y: auto; text-align: left;">
+                <span style="position: absolute; top: 20px; right: 25px; color: var(--cream-soda); font-size: 2rem; cursor: pointer;" onclick="closeOrderModal()">&times;</span>
+                <h2 style="font-family: var(--font-accent); color: var(--gold-exact); margin-bottom: 5px; letter-spacing: 3px;">ORDER INTEL</h2>
+                <p id="order-meta" style="font-size: 0.8rem; opacity: 0.5; letter-spacing: 2px; margin-bottom: 30px; text-transform: uppercase;">ID #000 BY USERNAME</p>
+                
+                <div style="border-top: 1px solid rgba(201, 150, 63, 0.1); padding-top: 25px; margin-bottom: 30px;">
+                    <label style="color: var(--gold-exact); font-weight: bold; margin-bottom: 15px;">DEPLOYED EQUIPMENT</label>
+                    <div id="order-items-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- Items will be injected here -->
+                    </div>
+                </div>
+
+                <!-- COUPON INFO -->
+                <div id="order-coupon-section" style="display: none; margin-bottom: 30px; border: 1px dashed var(--jungle-bright); padding: 15px; background: rgba(74, 222, 128, 0.05);">
+                    <div style="font-size: 0.7rem; color: var(--jungle-bright); letter-spacing: 2px; margin-bottom: 5px;">TACTICAL DISCOUNT APPLIED</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="order-coupon-code" style="font-family: var(--font-accent); font-size: 1.5rem; color: var(--cream-soda);">CODE</span>
+                        <span id="order-discount-val" style="color: var(--jungle-bright); font-family: var(--font-accent);">-0 MAD</span>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.2); padding: 25px; border-left: 3px solid var(--gold-exact);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-family: var(--font-accent); letter-spacing: 2px; opacity: 0.7;">TOTAL REVENUE</span>
+                        <span id="order-total-display" style="font-family: var(--font-accent); font-size: 2.2rem; color: var(--gold-exact);">0 MAD</span>
+                    </div>
+                </div>
+
+                <button class="btn-action" style="width: 100%; margin-top: 30px; background: var(--gold-exact); color: var(--dark);" onclick="closeOrderModal()">DISMISS INTEL</button>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>QUICK ADD PRODUCT</h2>
-            <form id="add-product-form">
-                <input type="text" id="p-name" placeholder="Name" required style="width: 100%; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; padding: 5px;">
-                <input type="number" id="p-price" placeholder="Price" required style="width: 100%; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; padding: 5px;">
-                <select id="p-cat" style="width: 100%; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; padding: 5px;">
-                    <option value="1">Jerseys</option>
-                    <option value="2">Balls</option>
-                    <option value="3">Cards</option>
-                    <option value="4">Accessories</option>
-                </select>
-                <button type="submit" class="btn">ADD TO STOCK</button>
-            </form>
+        <!-- UNIVERSAL CONFIRMATION MODAL -->
+        <div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30000; justify-content: center; align-items: center; backdrop-filter: blur(10px);" onclick="if(event.target === this) closeConfirmModal();">
+            <div class="modal-content" style="background: var(--gray-dark); padding: 50px; max-width: 500px; width: 90%; border: 2px solid #ff4444; position: relative; text-align: center; box-shadow: 0 0 50px rgba(255, 68, 68, 0.1);">
+                <h2 id="confirm-title" style="font-family: var(--font-accent); color: #ff4444; font-size: 2.5rem; letter-spacing: 3px; margin-bottom: 20px;">CONFIRM ACTION</h2>
+                <p id="confirm-msg" style="font-size: 0.9rem; opacity: 0.7; letter-spacing: 1px; margin-bottom: 40px; line-height: 1.6;">ARE YOU SURE YOU WANT TO PROCEED WITH THIS PERMANENT REMOVAL?</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <button class="btn-action" style="background: transparent; border-color: rgba(242, 232, 207, 0.2); color: var(--cream-soda);" onclick="closeConfirmModal()">CANCEL</button>
+                    <button id="confirm-action-btn" class="btn-action" style="background: #ff4444; border-color: #ff4444; color: white;">CONFIRM</button>
+                </div>
+            </div>
         </div>
-    </div>
+
+    </main>
+
+    <div id="toast"></div>
 
     <script>
+        // ── NAVIGATION & STATE ──
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('nav li').forEach(l => l.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            const title = event.currentTarget.innerText;
+            document.getElementById('tab-title').innerText = title;
+
+            // Load data based on tab
+            if (tabId === 'orders') fetchOrders();
+            if (tabId === 'users') fetchUsers();
+            if (tabId === 'reviews') fetchReviews();
+            if (tabId === 'custom') fetchCustomRequests();
+            if (tabId === 'coupons') fetchCoupons();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        async function handleLogout() {
+            await fetch('/api/logout');
+            window.location.href = '/';
+        }
+
+        // ── DATA FETCHING ──
+
         async function fetchOrders() {
             const res = await fetch('/api/admin/orders');
-            const orders = await res.json();
+            const data = await res.json();
             const tbody = document.querySelector('#orders-table tbody');
-            tbody.innerHTML = orders.map(o => `
+            tbody.innerHTML = data.map(o => `
                 <tr>
                     <td>#${o.id}</td>
+                    <td>${o.username || 'Guest'}</td>
                     <td>${o.total} MAD</td>
-                    <td style="color: ${o.status === 'pending' ? 'var(--gold)' : 'var(--neon)'}">${o.status}</td>
+                    <td>
+                        <select onchange="updateOrderStatus(${o.id}, this.value)" class="status-badge status-${o.status}">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>PENDING</option>
+                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>COMPLETED</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>CANCELLED</option>
+                        </select>
+                    </td>
                     <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-action" onclick='viewOrderDetails(${JSON.stringify(o).replace(/'/g, "&apos;")})'>DETAILS</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        document.getElementById('add-product-form').onsubmit = async (e) => {
+        async function updateOrderStatus(id, status) {
+            const res = await fetch(`/api/admin/order/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                showToast("ORDER STATUS UPDATED");
+                fetchOrders();
+            }
+        }
+
+        function viewOrderDetails(o) {
+            const items = JSON.parse(o.items_json);
+            
+            // Populate Modal
+            document.getElementById('order-meta').innerText = `ID #${o.id} BY ${o.username || 'GUEST'}`;
+            document.getElementById('order-total-display').innerText = `${o.total} MAD`;
+            
+            // Handle Coupon Display
+            const couponSection = document.getElementById('order-coupon-section');
+            if (o.coupon_code) {
+                couponSection.style.display = 'block';
+                document.getElementById('order-coupon-code').innerText = o.coupon_code;
+                document.getElementById('order-discount-val').innerText = `-${o.discount_amount} MAD`;
+            } else {
+                couponSection.style.display = 'none';
+            }
+
+            const itemsList = document.getElementById('order-items-list');
+            itemsList.innerHTML = items.map(i => `
+                <div style="padding: 15px 0; border-bottom: 1px solid rgba(242, 232, 207, 0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <div style="font-family: var(--font-accent); letter-spacing: 1px; color: var(--cream-soda); font-size: 1.1rem;">${i.name}</div>
+                        <div style="color: var(--gold-exact); font-family: var(--font-accent);">${i.price} MAD</div>
+                    </div>
+                    <div style="font-size: 0.7rem; letter-spacing: 1px; color: var(--gold-exact); text-transform: uppercase; opacity: 0.8;">
+                        ${i.selectedSize ? `DIMENSION: ${i.selectedSize}` : ''}
+                        ${i.selectedColor ? ` | FINISH: ${i.selectedColor}` : ''}
+                    </div>
+                    ${i.customName ? `
+                        <div style="margin-top: 8px; background: rgba(201, 150, 63, 0.1); padding: 8px 12px; border-left: 2px solid var(--gold-exact); font-size: 0.75rem;">
+                            <span style="opacity: 0.6; font-size: 0.6rem; display: block; margin-bottom: 2px;">STADIUM PERSONALIZATION</span>
+                            <span style="font-family: var(--font-accent); letter-spacing: 1px; color: var(--cream-soda);">${i.customName.toUpperCase()} #${i.customNumber}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            // Show Modal
+            document.getElementById('order-details-modal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('order-details-modal').style.display = 'none';
+        }
+
+        async function fetchUsers() {
+            const res = await fetch('/api/admin/users');
+            const data = await res.json();
+            const tbody = document.querySelector('#users-table tbody');
+            tbody.innerHTML = data.map(u => `
+                <tr>
+                    <td>#${u.id}</td>
+                    <td>${u.first_name} ${u.last_name}</td>
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td style="color: ${u.role === 'admin' ? 'var(--gold-exact)' : 'inherit'}">${u.role.toUpperCase()}</td>
+                    <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                    <td>
+                        ${u.role !== 'admin' ? `<button class="btn-action btn-delete" onclick="deleteUser(${u.id})">BAN</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteUser(id) {
+            showConfirmModal("BANISHMENT", "CONFIRM PERMANENT BANISHMENT FROM STADIUM?", async () => {
+                const res = await fetch(`/api/admin/user/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("USER REMOVED");
+                    fetchUsers();
+                }
+            });
+        }
+
+        async function fetchReviews() {
+            const res = await fetch('/api/reviews');
+            const data = await res.json();
+            const tbody = document.querySelector('#reviews-table tbody');
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td>#${r.id}</td>
+                    <td>${r.u_username || 'Anonymous'}</td>
+                    <td style="color: var(--gold-exact)">${'★'.repeat(r.rating)}</td>
+                    <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.comment}</td>
+                    <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-action btn-delete" onclick="deleteReview(${r.id})">REMOVE</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteReview(id) {
+            showConfirmModal("CLEANSE FEEDBACK", "REMOVE THIS FEEDBACK FROM PUBLIC RECORDS?", async () => {
+                const res = await fetch(`/api/admin/review/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("REVIEW DELETED");
+                    fetchReviews();
+                }
+            });
+        }
+
+        async function fetchCustomRequests() {
+            const res = await fetch('/api/admin/custom-requests');
+            const data = await res.json();
+            const tbody = document.querySelector('#custom-table tbody');
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td>#${r.id}</td>
+                    <td>${r.contact}<br><small>${r.name}</small></td>
+                    <td style="max-width: 400px;">${r.message}</td>
+                    <td>
+                        <select onchange="updateCustomRequestStatus(${r.id}, this.value)" class="status-badge status-${r.status}">
+                            <option value="new" ${r.status === 'new' ? 'selected' : ''}>NEW</option>
+                            <option value="accepted" ${r.status === 'accepted' ? 'selected' : ''}>ACCEPTED</option>
+                            <option value="cancelled" ${r.status === 'cancelled' ? 'selected' : ''}>CANCELLED</option>
+                        </select>
+                    </td>
+                    <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-action btn-delete" onclick="deleteCustomRequest(${r.id})">DISMISS</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function updateCustomRequestStatus(id, status) {
+            const res = await fetch(`/api/admin/custom-request/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                showToast("SCOUTING STATUS UPDATED");
+                fetchCustomRequests();
+            }
+        }
+
+        async function deleteCustomRequest(id) {
+            showConfirmModal("SCOUTING DISMISSAL", "DISMISS THIS SCOUT REQUEST?", async () => {
+                const res = await fetch(`/api/admin/custom-request/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("REQUEST DISMISSED");
+                    fetchCustomRequests();
+                }
+            });
+        }
+
+        async function fetchCoupons() {
+            const res = await fetch('/api/admin/coupons');
+            const data = await res.json();
+            const tbody = document.querySelector('#coupons-table tbody');
+            tbody.innerHTML = data.map(c => `
+                <tr>
+                    <td>${c.code}</td>
+                    <td>${c.discount_percent}%</td>
+                    <td>
+                        <button class="btn-action btn-delete" onclick="deleteCoupon(${c.id})">REVOKE</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('add-coupon-form').onsubmit = async (e) => {
             e.preventDefault();
             const data = {
-                name: document.getElementById('p-name').value,
-                price: parseFloat(document.getElementById('p-price').value),
-                category_id: parseInt(document.getElementById('p-cat').value),
-                description: 'Added via admin',
-                emoji: '⚽',
-                badge: 'new',
-                season: '2024-25',
-                continent: 'europe'
+                code: document.getElementById('c-code').value,
+                discount_percent: parseInt(document.getElementById('c-pct').value)
             };
-            const res = await fetch('/api/admin/products', {
+            const res = await fetch('/api/admin/coupon', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             if (res.ok) {
-                alert('Product added!');
+                showToast("COUPON DEPLOYED");
                 e.target.reset();
+                fetchCoupons();
             }
         };
 
+        async function deleteCoupon(id) {
+            showConfirmModal("REVOKE TACTIC", "PERMANENTLY REVOKE THIS DISCOUNT TACTIC?", async () => {
+                const res = await fetch(`/api/admin/coupon/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("COUPON REVOKED");
+                    fetchCoupons();
+                }
+            });
+        }
+
+        // Add helper functions for modal control
+        function showConfirmModal(title, msg, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            if (!modal) return;
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            confirmBtn.onclick = async () => {
+                await onConfirm();
+                closeConfirmModal();
+            };
+            modal.style.display = 'flex';
+        }
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        // ── PRODUCT DEPLOYMENT ──
+
+        document.getElementById('p-cat').addEventListener('change', function() {
+            const cat = this.value;
+            // 1: Jerseys, 2: Balls, 3: Boots, 4: Cards, 5: Lifestyle
+            document.getElementById('league-group').style.display = (cat === '1') ? 'block' : 'none';
+            document.getElementById('continent-group').style.display = (cat === '1' || cat === '5' || cat === '4') ? 'block' : 'none';
+            document.getElementById('brand-group').style.display = (cat === '3' || cat === '2') ? 'block' : 'none';
+            document.getElementById('card-type-group').style.display = (cat === '4') ? 'block' : 'none';
+        });
+
+        document.getElementById('new-product-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            let imageUrl = '';
+            const fileInput = document.getElementById('p-file');
+            
+            if (fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                const uploadRes = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (uploadData.success) {
+                    imageUrl = uploadData.url;
+                } else {
+                    alert("Upload failed: " + uploadData.message);
+                    return;
+                }
+            }
+
+            const data = {
+                name: document.getElementById('p-name').value,
+                category_id: parseInt(document.getElementById('p-cat').value),
+                price: parseFloat(document.getElementById('p-price').value),
+                continent: document.getElementById('p-continent').value,
+                league: document.getElementById('p-league').value,
+                brand: document.getElementById('p-brand').value,
+                card_type: document.getElementById('p-card-type').value,
+                image_url: imageUrl,
+                description: "Premium equipment added via Command Centre",
+                badge: "new"
+            };
+
+            const res = await fetch('/api/admin/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                showToast("EQUIPMENT DEPLOYED TO STADIUM");
+                e.target.reset();
+            } else {
+                const err = await res.json();
+                alert("Error: " + err.message);
+            }
+        };
+
+        // Init
         fetchOrders();
     </script>
 </body>

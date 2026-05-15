@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTURA | CHECKOUT STATION</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body class="dark-mode">
+
+    <!-- CUSTOM CURSOR -->
+    <div id="custom-cursor"></div>
+
+    <!-- INTRO CINEMATIC -->
+    <div id="intro-overlay">
+        <div class="intro-logo">FOOTURA</div>
+    </div>
+
+    <!-- NAVIGATION LOGO -->
+    <div id="nav-logo-mini" onclick="rebootStadium()" style="top: 20px; left: 25px; position: absolute;">
+        F<span class="oo-green">OO</span>TURA
+    </div>
+
+    <!-- AUTH BUTTON -->
+    <div style="position: absolute; top: 20px; right: 25px; display: flex; gap: 20px; align-items: center; z-index: 1000;">
+        <button id="auth-main-btn" class="btn-futura" style="width: auto; padding: 10px 30px; border-color: var(--gold-exact); color: var(--gold-exact); margin-top: 0;" onclick="openAuthModal()">CONNECT</button>
+    </div>
+
+    <main class="container" style="padding-top: 150px; min-height: 100vh;">
+        <h2 class="section-title" style="font-size: 6rem; margin-bottom: 20px;">SHOPPING CART</h2>
+        <p style="opacity: 0.6; letter-spacing: 2px; margin-bottom: 60px;">REVIEW YOUR SQUAD SELECTION BEFORE DISPATCH</p>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 80px;">
+            
+            <!-- LEFT: CART ITEMS & DELIVERY -->
+            <div id="checkout-left-column">
+                <div id="checkout-items-container">
+                    <div id="checkout-items-list">
+                        <!-- Dynamic items here -->
+                    </div>
+                    <div id="checkout-empty-msg" style="display: none; text-align: center; padding: 100px 0;">
+                        <h3 style="font-family: var(--font-accent); font-size: 2rem; opacity: 0.3;">YOUR SQUAD IS EMPTY</h3>
+                        <a href="/" class="btn-futura" style="width: auto; margin-top: 30px; display: inline-block; padding: 15px 40px;">RETURN TO STADIUM</a>
+                    </div>
+                </div>
+
+                <!-- DELIVERY INTEL SECTION -->
+                <div id="delivery-intel" style="margin-top: 60px; background: var(--gray-dark); padding: 50px; border: 1px solid rgba(242, 232, 207, 0.1);">
+                    <h3 style="font-family: var(--font-accent); font-size: 2.5rem; margin-bottom: 30px; letter-spacing: 3px; color: var(--gold-exact);">DELIVERY INTEL</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div class="input-group">
+                            <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.8;">CONTACT EMAIL</label>
+                            <input type="email" id="deliv-email" placeholder="EMAIL ADDRESS" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; font-family:var(--font-accent); letter-spacing:2px; outline:none;">
+                        </div>
+                        <div class="input-group">
+                            <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.8;">CONTACT PHONE</label>
+                            <input type="tel" id="deliv-phone" placeholder="PHONE NUMBER" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; font-family:var(--font-accent); letter-spacing:2px; outline:none;">
+                        </div>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.8;">STADIUM ADDRESS (STREET)</label>
+                            <input type="text" id="deliv-address" placeholder="STREET NAME AND NUMBER" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; font-family:var(--font-accent); letter-spacing:2px; outline:none;">
+                        </div>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.8;">CITY</label>
+                            <input type="text" id="deliv-city" placeholder="CITY" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 20px; font-family:var(--font-accent); letter-spacing:2px; outline:none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: PAYMENT & SUMMARY -->
+            <div id="checkout-summary" style="background: var(--gray-dark); padding: 50px; border: 1px solid rgba(242, 232, 207, 0.1); position: sticky; top: 150px; height: fit-content;">
+                <h3 style="font-family: var(--font-accent); font-size: 2.5rem; margin-bottom: 30px; letter-spacing: 3px; color: var(--gold-exact);">DISPATCH SUMMARY</h3>
+                
+                <div id="summary-details" style="margin-bottom: 40px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; opacity: 0.7;">
+                        <span>SUBTOTAL</span>
+                        <span id="subtotal-amount">0 MAD</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; opacity: 0.7;">
+                        <span>DISPATCH FEE</span>
+                        <span>0 MAD</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(242, 232, 207, 0.1);">
+                        <span style="font-family: var(--font-accent); letter-spacing: 2px;">TOTAL COMMAND</span>
+                        <span id="total-amount" style="font-family: var(--font-accent); font-size: 2.5rem; color: var(--cream-soda);">0 MAD</span>
+                    </div>
+                </div>
+
+                <!-- COUPON CODE SECTION -->
+                <div style="margin-bottom: 40px; border: 1px dashed rgba(201, 150, 63, 0.3); padding: 25px;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:15px; opacity:0.8; color: var(--gold-exact);">APPLY TACTICAL DISCOUNT</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="coupon-input" placeholder="CODE" style="flex: 1; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.1); color: var(--cream-soda); padding: 12px; font-family:var(--font-accent); letter-spacing:2px; outline:none; text-transform: uppercase;">
+                        <button class="btn-futura" style="margin-top: 0; width: auto; padding: 12px 25px; font-size: 0.8rem;" onclick="applyCoupon()">APPLY</button>
+                    </div>
+                    <div id="coupon-applied-msg" style="display: none; margin-top: 15px; color: var(--jungle-bright); font-size: 0.7rem; letter-spacing: 1px; font-family: var(--font-accent);">
+                        TACTIC APPLIED: <span id="discount-pct">0</span>% REDUCTION
+                    </div>
+                </div>
+
+                <h3 style="font-family: var(--font-accent); font-size: 1.8rem; margin-bottom: 20px; letter-spacing: 2px;">PAYMENT METHOD</h3>
+                <div class="payment-methods" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+                    <div class="payment-opt active" onclick="selectPayment(this, 'card')" style="border: 1px solid var(--gold-exact); padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(201, 150, 63, 0.1);">
+                        <div style="height: 40px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">
+                            <img src="/static/img/payement-card-logo.png" style="height: 100%; object-fit: contain;">
+                        </div>
+                        <div style="font-family: var(--font-accent); font-size: 0.8rem; letter-spacing: 1px;">CREDIT CARD</div>
+                    </div>
+                    <div class="payment-opt" onclick="selectPayment(this, 'paypal')" style="border: 1px solid rgba(242, 232, 207, 0.1); padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                        <div style="height: 40px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">
+                            <img src="/static/img/paypal-logo.png" style="height: 100%; object-fit: contain;">
+                        </div>
+                        <div style="font-family: var(--font-accent); font-size: 0.8rem; letter-spacing: 1px;">PAYPAL</div>
+                    </div>
+                    <div class="payment-opt" onclick="selectPayment(this, 'cod')" style="border: 1px solid rgba(242, 232, 207, 0.1); padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; grid-column: span 2;">
+                        <div style="font-size: 1.5rem; margin-bottom: 10px;">🚚</div>
+                        <div style="font-family: var(--font-accent); font-size: 0.8rem; letter-spacing: 1px;">CASH ON DELIVERY</div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC PAYMENT INPUTS -->
+                <div id="payment-details-inputs" style="margin-bottom: 40px; border-top: 1px solid rgba(242, 232, 207, 0.1); padding-top: 30px;">
+                    
+                    <!-- CARD INPUTS -->
+                    <div id="card-inputs">
+                        <input type="text" id="card-name" placeholder="CARDHOLDER NAME" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.1); color: var(--cream-soda); padding: 15px; font-family:var(--font-accent); letter-spacing:2px; margin-bottom: 15px; text-transform: uppercase;">
+                        <div style="position: relative; margin-bottom: 15px;">
+                            <input type="text" id="card-num" placeholder="CARD NUMBER" maxlength="19" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.1); color: var(--cream-soda); padding: 15px; padding-right: 120px; font-family:var(--font-accent); letter-spacing:2px;">
+                            <div id="card-type-display" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px; opacity: 0.5;">
+                                <div id="visa-icon" style="height: 25px; width: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(242, 232, 207, 0.1); border-radius: 4px; background: rgba(0,0,0,0.2);">
+                                    <img src="/static/img/visa-logo.png" style="height: 100%; width: 100%; object-fit: contain;">
+                                </div>
+                                <div id="mc-icon" style="height: 25px; width: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(242, 232, 207, 0.1); border-radius: 4px; background: rgba(0,0,0,0.2);">
+                                    <img src="/static/img/mc-logo.png" style="height: 100%; width: 100%; object-fit: contain;">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 15px;">
+                            <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5" style="flex: 1; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.1); color: var(--cream-soda); padding: 15px; font-family:var(--font-accent); letter-spacing:2px;">
+                            <input type="text" id="card-cvv" placeholder="CVV" maxlength="3" style="flex: 1; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.1); color: var(--cream-soda); padding: 15px; font-family:var(--font-accent); letter-spacing:2px;">
+                        </div>
+                    </div>
+
+                    <!-- PAYPAL INPUTS -->
+                    <div id="paypal-inputs" style="display: none;">
+                        <input type="email" id="paypal-email" placeholder="PAYPAL EMAIL" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.1); color: var(--cream-soda); padding: 15px; font-family:var(--font-accent); letter-spacing:2px;">
+                        <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 10px; text-align: center;">YOU WILL BE REDIRECTED TO PAYPAL TO AUTHORIZE</p>
+                    </div>
+
+                    <!-- COD MESSAGE -->
+                    <div id="cod-message" style="display: none; text-align: center; opacity: 0.6; padding: 20px 0;">
+                        <p style="font-size: 0.8rem; letter-spacing: 1px;">PAYMENT WILL BE COLLECTED AT YOUR DOORSTEP</p>
+                    </div>
+
+                </div>
+
+                <button class="btn-futura" style="width: 100%; border-color: var(--gold-exact); background: var(--gold-exact); color: var(--dark);" onclick="processCheckout()">CONFIRM DISPATCH</button>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .payment-opt.active {
+            border-color: var(--gold-exact) !important;
+            background: rgba(201, 150, 63, 0.1) !important;
+        }
+        .checkout-item {
+            background: rgba(255,255,255,0.02);
+            padding: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(242, 232, 207, 0.05);
+            transition: all 0.4s;
+        }
+        .checkout-item:hover {
+            border-color: rgba(242, 232, 207, 0.2);
+            background: rgba(255,255,255,0.05);
+        }
+        .card-icon-active {
+            background: var(--gold-exact) !important;
+            color: var(--dark) !important;
+            border-color: var(--gold-exact) !important;
+            opacity: 1 !important;
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCheckoutPage();
+            prefillUserInfo();
+            initCardValidation();
+        });
+
+        function initCardValidation() {
+            const cardInput = document.getElementById('card-num');
+            const expInput = document.getElementById('card-exp');
+            const cvvInput = document.getElementById('card-cvv');
+
+            if (cardInput) {
+                cardInput.addEventListener('input', (e) => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    
+                    // Card Type Detection
+                    document.querySelectorAll('#card-type-display div').forEach(s => s.classList.remove('card-icon-active'));
+                    if (val.startsWith('4')) document.getElementById('visa-icon').classList.add('card-icon-active');
+                    else if (val.startsWith('5')) document.getElementById('mc-icon').classList.add('card-icon-active');
+
+                    // Formatting (Spaces every 4 digits)
+                    let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+                    e.target.value = formatted;
+                });
+            }
+
+            if (expInput) {
+                expInput.addEventListener('input', (e) => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length >= 2) {
+                        e.target.value = val.slice(0, 2) + '/' + val.slice(2, 4);
+                    } else {
+                        e.target.value = val;
+                    }
+                });
+            }
+        }
+
+        function validateLuhn(number) {
+            let sum = 0;
+            let shouldDouble = false;
+            for (let i = number.length - 1; i >= 0; i--) {
+                let digit = parseInt(number.charAt(i));
+                if (shouldDouble) {
+                    if ((digit *= 2) > 9) digit -= 9;
+                }
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+            return (sum % 10) === 0;
+        }
+
+        async function prefillUserInfo() {
+            const res = await fetch('/api/auth/status');
+            const data = await res.json();
+            if (data.logged_in) {
+                if (data.email) document.getElementById('deliv-email').value = data.email;
+                if (data.phone) document.getElementById('deliv-phone').value = data.phone;
+            }
+        }
+
+        let selectedPaymentMethod = 'card';
+
+        function selectPayment(el, method) {
+            document.querySelectorAll('.payment-opt').forEach(opt => {
+                opt.classList.remove('active');
+                opt.style.borderColor = 'rgba(242, 232, 207, 0.1)';
+                opt.style.background = 'transparent';
+            });
+            el.classList.add('active');
+            el.style.borderColor = 'var(--gold-exact)';
+            el.style.background = 'rgba(201, 150, 63, 0.1)';
+            selectedPaymentMethod = method;
+
+            // Toggle Input Fields
+            document.getElementById('card-inputs').style.display = (method === 'card') ? 'block' : 'none';
+            document.getElementById('paypal-inputs').style.display = (method === 'paypal') ? 'block' : 'none';
+            document.getElementById('cod-message').style.display = (method === 'cod') ? 'block' : 'none';
+        }
+
+        async function processCheckout() {
+            // 1. Check Auth Status (MANDATORY FOR DISPATCH)
+            const authRes = await fetch('/api/auth/status');
+            const authData = await authRes.json();
+
+            if (!authData.logged_in) {
+                showToast("PLEASE CONNECT TO CONFIRM DISPATCH", "error");
+                if (typeof openAuthModal === 'function') {
+                    openAuthModal();
+                }
+                return;
+            }
+
+            const res = await fetch('/api/cart');
+            const cart = await res.json();
+            if (cart.length === 0) {
+                showToast("Your squad is empty!", "error");
+                return;
+            }
+
+            // Validate Delivery Fields
+            const email = document.getElementById('deliv-email').value.trim();
+            const phone = document.getElementById('deliv-phone').value.trim();
+            const address = document.getElementById('deliv-address').value.trim();
+            const city = document.getElementById('deliv-city').value.trim();
+
+            const missingFields = [];
+            if (!email) missingFields.push("EMAIL");
+            if (!phone) missingFields.push("PHONE");
+            if (!address) missingFields.push("ADDRESS");
+            if (!city) missingFields.push("CITY");
+
+            // Validate Payment Fields based on method
+            if (selectedPaymentMethod === 'card') {
+                const cardName = document.getElementById('card-name').value.trim();
+                const cardNum = document.getElementById('card-num').value.replace(/\s/g, '');
+                const cardExp = document.getElementById('card-exp').value;
+                const cardCvv = document.getElementById('card-cvv').value;
+
+                if (!cardName) missingFields.push("CARDHOLDER NAME");
+                
+                if (!cardNum) missingFields.push("CARD NUMBER");
+                else if (cardNum.length < 13 || !validateLuhn(cardNum)) missingFields.push("VALID CARD NUMBER (LUHN CHECK FAILED)");
+
+                if (!cardExp) missingFields.push("EXPIRY DATE");
+                else if (!/^\d{2}\/\d{2}$/.test(cardExp)) missingFields.push("EXPIRY FORMAT (MM/YY)");
+
+                if (!cardCvv) missingFields.push("CVV");
+                else if (cardCvv.length < 3) missingFields.push("VALID CVV");
+
+            } else if (selectedPaymentMethod === 'paypal') {
+                const ppEmail = document.getElementById('paypal-email').value.trim();
+                if (!ppEmail) missingFields.push("PAYPAL EMAIL");
+                else if (!ppEmail.includes('@')) missingFields.push("VALID PAYPAL EMAIL");
+            }
+
+            if (missingFields.length > 0) {
+                showToast(`MISSING INTEL: ${missingFields.join(', ')}`, "error");
+                return;
+            }
+            
+            showToast(`Processing ${selectedPaymentMethod.toUpperCase()} payment...`, "success");
+            
+            // Calculate discount amount for storage
+            let discountAmount = 0;
+            let couponCodeUsed = null;
+            if (typeof appliedDiscount !== 'undefined' && appliedDiscount > 0) {
+                const subtotal = window.currentTotal || 0;
+                discountAmount = (subtotal * appliedDiscount) / 100;
+                couponCodeUsed = document.getElementById('coupon-input').value.trim().toUpperCase();
+            }
+
+            setTimeout(async () => {
+                try {
+                    const checkoutRes = await fetch('/api/checkout', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email, phone, address, city,
+                            payment_method: selectedPaymentMethod,
+                            coupon_code: couponCodeUsed,
+                            discount_amount: discountAmount
+                        })
+                    });
+                    
+                    if (!checkoutRes.ok) {
+                        throw new Error(`STADIUM REFUSED DISPATCH: ${checkoutRes.status}`);
+                    }
+
+                    const data = await checkoutRes.json();
+                    if (data.success) {
+                        showToast(data.message, "success");
+                        // Clear cart UI
+                        if (typeof updateCartUI === 'function') updateCartUI();
+                        setTimeout(() => window.location.href = '/', 2000);
+                    } else {
+                        showToast(`DISPATCH FAILED: ${data.message}`, "error");
+                    }
+                } catch (err) {
+                    showToast(`COMMUNICATIONS FAILURE: ${err.message}`, "error");
+                }
+            }, 1500);
+        }
+    </script>
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px);" onclick="if(event.target === this) closeAuthModal();">
+        <div class="modal-content" style="background: var(--gray-dark); padding: 50px; max-width: 500px; width: 90%; border: 2px solid var(--gold-exact); position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <span id="close-modal" style="position: absolute; top: 20px; right: 25px; color: var(--cream-soda); font-size: 2rem; cursor: pointer; transition: color 0.3s;" onmouseover="this.style.color='var(--gold-exact)'" onmouseout="this.style.color='var(--cream-soda)'" onclick="closeAuthModal()">&times;</span>
+
+            <div id="login-view" style="display: block;">
+                <h2 style="text-align: center; color: var(--gold-exact); width: 100%; font-family: var(--font-accent); font-size: 3rem; letter-spacing: 4px; margin-bottom: 30px;">LOGIN</h2>
+                <input type="text" id="login-username" placeholder="Username" style="width: 100%; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px; font-size: 1.1rem; font-family:var(--font-main) !important; letter-spacing:2px; outline:none; text-transform: none !important; margin-bottom: 20px;">
+                <input type="password" id="login-password" placeholder="Password" style="width: 100%; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px; font-size: 1.1rem; font-family:var(--font-main) !important; letter-spacing:2px; outline:none; text-transform: none !important; margin-bottom: 30px;">
+                <button class="btn-futura" style="width: 100%; border-color: var(--gold-exact); background: var(--gold-exact); color: var(--dark);" onclick="submitLogin()">ENTER STADIUM</button>
+                <p style="text-align: center; margin-top: 25px; font-family: var(--font-main); letter-spacing: 2px; font-size: 0.9rem;">
+                    <span style="color: white; text-transform: uppercase;">No account? </span>
+                    <span onclick="switchToRegister()" style="color: var(--gold-exact); text-decoration: underline; text-transform: uppercase; cursor: pointer; font-weight: bold;">Register here</span>
+                </p>
+            </div>
+
+            <div id="register-view" style="display: none;">
+                <h2 style="text-align: center; color: var(--gold-exact); width: 100%; font-family: var(--font-accent); font-size: 3rem; letter-spacing: 4px; margin-bottom: 30px;">JOIN SQUAD</h2>
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <input type="text" id="reg-firstname" placeholder="First name" required style="flex: 1; min-width: 0; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px 10px; font-size: 1rem; font-family:var(--font-main) !important; letter-spacing:1px; outline:none; text-transform: none !important;">
+                    <input type="text" id="reg-lastname" placeholder="Last name" required style="flex: 1; min-width: 0; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px 10px; font-size: 1rem; font-family:var(--font-main) !important; letter-spacing:1px; outline:none; text-transform: none !important;">
+                </div>
+                <input type="text" id="reg-username" placeholder="Username" required style="width: 100%; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px; font-size: 1.1rem; font-family:var(--font-main) !important; letter-spacing:2px; outline:none; text-transform: none !important; margin-bottom: 20px;">
+                <input type="email" id="reg-email" placeholder="example@gmail.com" required style="width: 100%; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px; font-size: 1.1rem; font-family:var(--font-main) !important; letter-spacing:2px; outline:none; text-transform: none !important; margin-bottom: 20px;">
+                <input type="tel" id="reg-phone" placeholder="Ex : 0612345678" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric" style="width: 100%; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px; font-size: 1.1rem; font-family:var(--font-main) !important; letter-spacing:2px; outline:none; text-transform: none !important; margin-bottom: 20px;">
+                <input type="password" id="reg-password" placeholder="Password" required style="width: 100%; background: var(--dark); border: 2px solid var(--gold-exact); color: var(--cream-soda); padding: 20px; font-size: 1.1rem; font-family:var(--font-main) !important; letter-spacing:2px; outline:none; text-transform: none !important; margin-bottom: 30px;">
+                <button class="btn-futura" style="width: 100%; border-color: var(--gold-exact); background: var(--gold-exact); color: var(--dark);" onclick="submitRegister()">CREATE IDENTITY</button>
+                <p style="text-align: center; margin-top: 25px; font-family: var(--font-main); letter-spacing: 2px; font-size: 0.9rem;">
+                    <span style="color: white; text-transform: uppercase;">Already a member? </span>
+                    <span onclick="switchToLogin()" style="color: var(--gold-exact); text-decoration: underline; text-transform: uppercase; cursor: pointer; font-weight: bold;">Login</span>
+                </p>
+            </div>
+        </div>
+    {% if session.get('role') != 'admin' %}
+    <footer style="background: transparent; padding: 40px 0; margin-top: 100px; border-top: 1px solid rgba(242, 232, 207, 0.05);">
+        <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; font-family: var(--font-main);">
+            <div>
+                © 2026 FOOTURA. 
+                <a href="https://www.instagram.com/iliass_elfadili/" target="_blank" style="color: inherit; text-decoration: none; margin-left: 30px;">INSTAGRAM</a>
+                <a href="mailto:footurastore@gmail.com" style="color: inherit; text-decoration: none; margin-left: 20px;">EMAIL</a>
+            </div>
+            <div>
+                &lt;/&gt; DEVELOPED WITH <span style="color: #ff4444;">❤</span> BY 
+                <a href="https://linkedin.com/in/iliass-el-fadili" target="_blank" style="color: var(--gold-exact); text-decoration: none; font-weight: bold;">ILIASS EL FADILI</a> & 
+                <a href="https://www.linkedin.com/in/achraf-el-haouari-08a4a6299/" target="_blank" style="color: var(--gold-exact); text-decoration: none; font-weight: bold;">ACHRAF EL HAOUARI</a>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+</body>
+</html>

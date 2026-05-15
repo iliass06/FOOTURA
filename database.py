@@ -2,6 +2,7 @@ import sqlite3
 import os
 import json
 from flask import g
+from werkzeug.security import generate_password_hash
 
 DATABASE = 'instance/futura.db'
 
@@ -9,7 +10,8 @@ def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
             DATABASE,
-            detect_types=sqlite3.PARSE_DECLTYPES
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            timeout=30  # Increased timeout to prevent "database is locked"
         )
         g.db.row_factory = sqlite3.Row
     return g.db
@@ -69,12 +71,11 @@ def _create_tables(db):
             price REAL NOT NULL,
             old_price REAL,
             image_url TEXT,
-            emoji TEXT,
+            
             badge TEXT,
             badge_text TEXT,
             
             -- Dynamic attributes
-            brand TEXT,
             season TEXT,
             rarity TEXT, -- for cards: Common, Rare, Epic, Legendary, Iconic
             is_iconic INTEGER DEFAULT 0,
@@ -84,6 +85,9 @@ def _create_tables(db):
             club_id INTEGER,
             nation_id INTEGER,
             continent TEXT,
+            league TEXT,
+            brand TEXT,
+            card_type TEXT,
             
             FOREIGN KEY (category_id) REFERENCES categories(id),
             FOREIGN KEY (league_id) REFERENCES leagues(id),
@@ -94,10 +98,14 @@ def _create_tables(db):
         -- 3. USERS & AUTH
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            first_name TEXT NOT NULL,
+            last_name TEXT NOT NULL,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
+            phone TEXT,
             password_hash TEXT NOT NULL,
-            role TEXT DEFAULT 'user', -- 'user' | 'admin'
+            role TEXT DEFAULT 'user',
+            cart_json TEXT DEFAULT '[]',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -107,6 +115,8 @@ def _create_tables(db):
             user_id INTEGER,
             items_json TEXT NOT NULL,
             total REAL NOT NULL,
+            coupon_code TEXT,
+            discount_amount REAL DEFAULT 0,
             status TEXT DEFAULT 'pending', -- pending, completed, cancelled
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
@@ -121,18 +131,20 @@ def _create_tables(db):
 
         CREATE TABLE IF NOT EXISTS custom_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
             name TEXT,
             contact TEXT,
             message TEXT,
             image_ref TEXT,
             status TEXT DEFAULT 'new',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
         );
 
         -- 5. COMMUNITY
         CREATE TABLE IF NOT EXISTS reviews (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            product_id INTEGER NOT NULL,
+            product_id INTEGER, -- Made nullable for global squad feedback
             user_id INTEGER,
             username TEXT,
             rating INTEGER,
@@ -150,7 +162,7 @@ def _seed_data(db):
         return
 
     # Categories
-    cats = [('jerseys', 'Jerseys'), ('balls', 'Balls'), ('cards', 'Cards'), ('accessories', 'Accessories')]
+    cats = [('jerseys', 'Jerseys'), ('balls', 'Balls'), ('cards', 'Cards'), ('boots', 'Boots'), ('lifestyle', 'Lifestyle')]
     db.executemany('INSERT INTO categories (slug, name) VALUES (?,?)', cats)
     cat_ids = {row['slug']: row['id'] for row in db.execute('SELECT * FROM categories').fetchall()}
 
@@ -198,64 +210,80 @@ def _seed_data(db):
 
     # Products - Jerseys
     jerseys = [
-        (cat_ids['jerseys'], 'Real Madrid Home 24/25', 'The legendary white.', 349.0, 399.0, '/static/img/products/rm-home.jpg', '⚪', 'new', '2024-25', league_ids['laliga'], club_ids['rm'], None, 'europe'),
-        (cat_ids['jerseys'], 'Wydad AC Home', 'Red pride of Casablanca.', 189.0, None, '/static/img/products/wac-home.jpg', '🔴', 'local', '2024-25', league_ids['botola'], club_ids['wac'], None, 'africa'),
-        (cat_ids['jerseys'], 'Brazil 1970 Retro', 'Pele''s masterpiece.', 449.0, None, '/static/img/products/brazil-retro.jpg', '🟡', 'iconic', 'retro', league_ids['nations'], None, nation_ids['brazil'], 'south-am'),
-        (cat_ids['jerseys'], 'Morocco WC 2022', 'The Atlas Lions miracle.', 299.0, None, '/static/img/products/maroc-wc.jpg', '⭐', 'iconic', '2022', league_ids['nations'], None, nation_ids['maroc'], 'africa'),
-        (cat_ids['jerseys'], 'Manchester City Home', 'Blue Moon rising.', 329.0, None, '/static/img/products/mcity-home.jpg', '👕', 'champion', '2024-25', league_ids['pl'], club_ids['mcity'], None, 'europe'),
-        (cat_ids['jerseys'], 'Raja CA Away', 'The Green Eagles.', 179.0, None, '/static/img/products/rca-away.jpg', '🟢', 'local', '2024-25', league_ids['botola'], club_ids['rca'], None, 'africa'),
-        (cat_ids['jerseys'], 'PSG Fourth Kit', 'Parisian style.', 389.0, None, '/static/img/products/psg-fourth.jpg', '🗼', 'fashion', '2024-25', league_ids['ligue1'], club_ids['psg'], None, 'europe'),
-        (cat_ids['jerseys'], 'Argentina Retro 1986', 'Maradona''s glory.', 499.0, None, '/static/img/products/argentina-retro.jpg', '🔟', 'legend', 'retro', league_ids['nations'], None, nation_ids['argentina'], 'south-am')
+        (cat_ids['jerseys'], 'Real Madrid Home 24/25', 'The legendary white.', 349.0, 399.0, '/static/img/products/rm-home.jpg', 'new', '2024-25', league_ids['laliga'], club_ids['rm'], None, 'europe'),
+        (cat_ids['jerseys'], 'Wydad AC Home', 'Red pride of Casablanca.', 189.0, None, '/static/img/products/wac-home.jpg', 'local', '2024-25', league_ids['botola'], club_ids['wac'], None, 'africa'),
+        (cat_ids['jerseys'], 'Brazil 1970 Retro', 'Pele''s masterpiece.', 449.0, None, '/static/img/products/brazil-retro.jpg', 'iconic', 'retro', league_ids['nations'], None, nation_ids['brazil'], 'south-am'),
+        (cat_ids['jerseys'], 'Morocco WC 2022', 'The Atlas Lions miracle.', 299.0, None, '/static/img/products/maroc-wc.jpg', 'iconic', '2022', league_ids['nations'], None, nation_ids['maroc'], 'africa'),
+        (cat_ids['jerseys'], 'Manchester City Home', 'Blue Moon rising.', 329.0, None, '/static/img/products/mcity-home.jpg', 'champion', '2024-25', league_ids['pl'], club_ids['mcity'], None, 'europe'),
+        (cat_ids['jerseys'], 'Raja CA Away', 'The Green Eagles.', 179.0, None, '/static/img/products/rca-away.jpg', 'local', '2024-25', league_ids['botola'], club_ids['rca'], None, 'africa'),
+        (cat_ids['jerseys'], 'PSG Fourth Kit', 'Parisian style.', 389.0, None, '/static/img/products/psg-fourth.jpg', 'fashion', '2024-25', league_ids['ligue1'], club_ids['psg'], None, 'europe'),
+        (cat_ids['jerseys'], 'Argentina Retro 1986', 'Maradona''s glory.', 499.0, None, '/static/img/products/argentina-retro.jpg', 'legend', 'retro', league_ids['nations'], None, nation_ids['argentina'], 'south-am')
     ]
     db.executemany('''
-        INSERT INTO products (category_id, name, description, price, old_price, image_url, emoji, badge, season, league_id, club_id, nation_id, continent) 
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)''', jerseys)
+        INSERT INTO products (category_id, name, description, price, old_price, image_url, badge, season, league_id, club_id, nation_id, continent) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''', jerseys)
 
     # Products - Balls
     balls = [
-        (cat_ids['balls'], 'UCL Pro Ball 2024', 'Official match ball.', 599.0, None, '/static/img/products/ucl-ball.jpg', '⚽', 'official', 'Adidas'),
-        (cat_ids['balls'], 'Al Rihla WC 2022', 'The Journey.', 699.0, None, '/static/img/products/rihla-ball.jpg', '⚽', 'iconic', 'Adidas'),
-        (cat_ids['balls'], 'Nike Strike PL', 'Premier League official.', 449.0, None, '/static/img/products/pl-ball.jpg', '⚽', 'official', 'Nike'),
-        (cat_ids['balls'], 'Mini-Star Kids Ball', 'Safe foam ball.', 99.0, None, '/static/img/products/mini-ball.jpg', '⚽', 'kids', 'Kipsta'),
-        (cat_ids['balls'], 'Street Pro Concrete', 'Built for the streets.', 249.0, None, '/static/img/products/street-ball.jpg', '🏀', 'street', 'Molten'),
-        (cat_ids['balls'], 'Gold Edition Ball', 'Display masterpiece.', 1299.0, None, '/static/img/products/gold-ball.jpg', '✨', 'collector', 'Futura')
+        (cat_ids['balls'], 'UCL Pro Ball 2024', 'Official match ball.', 599.0, None, '/static/img/products/ucl-ball.jpg', 'official', 'Adidas'),
+        (cat_ids['balls'], 'Al Rihla WC 2022', 'The Journey.', 699.0, None, '/static/img/products/rihla-ball.jpg', 'iconic', 'Adidas'),
+        (cat_ids['balls'], 'Nike Strike PL', 'Premier League official.', 449.0, None, '/static/img/products/pl-ball.jpg', 'official', 'Nike'),
+        (cat_ids['balls'], 'Mini-Star Kids Ball', 'Safe foam ball.', 99.0, None, '/static/img/products/mini-ball.jpg', 'kids', 'Kipsta'),
+        (cat_ids['balls'], 'Street Pro Concrete', 'Built for the streets.', 249.0, None, '/static/img/products/street-ball.jpg', 'street', 'Molten'),
+        (cat_ids['balls'], 'Gold Edition Ball', 'Display masterpiece.', 1299.0, None, '/static/img/products/gold-ball.jpg', 'collector', 'Futura')
     ]
     db.executemany('''
-        INSERT INTO products (category_id, name, description, price, old_price, image_url, emoji, badge, brand) 
-        VALUES (?,?,?,?,?,?,?,?,?)''', balls)
+        INSERT INTO products (category_id, name, description, price, old_price, image_url, badge, brand) 
+        VALUES (?,?,?,?,?,?,?,?)''', balls)
 
     # Products - Cards
     cards = [
-        (cat_ids['cards'], 'Zinedine Zidane', 'The Maestro.', 299.0, None, '/static/img/products/card-zidane.jpg', '🏆', 'iconic', 'Iconic', 1, 'europe'),
-        (cat_ids['cards'], 'Kylian Mbappé', 'Speed of light.', 149.0, None, '/static/img/products/card-mbappe.jpg', '🚀', 'legendary', 'Legendary', 0, 'europe'),
-        (cat_ids['cards'], 'Hakim Ziyech', 'The Wizard.', 129.0, None, '/static/img/products/card-ziyech.jpg', '🪄', 'epic', 'Epic', 0, 'africa'),
-        (cat_ids['cards'], 'Erling Haaland', 'The Terminator.', 159.0, None, '/static/img/products/card-haaland.jpg', '🤖', 'rare', 'Rare', 0, 'europe'),
-        (cat_ids['cards'], 'Lionel Messi', 'The GOAT.', 399.0, None, '/static/img/products/card-messi.jpg', '🐐', 'mythic', 'Iconic', 1, 'south-am'),
-        (cat_ids['cards'], 'Cristiano Ronaldo', 'Siuuu.', 399.0, None, '/static/img/products/card-ronaldo.jpg', '🇵🇹', 'mythic', 'Iconic', 1, 'europe')
+        (cat_ids['cards'], 'Zinedine Zidane', 'The Maestro.', 299.0, None, '/static/img/products/card-zidane.jpg', 'iconic', 'Iconic', 1, 'europe'),
+        (cat_ids['cards'], 'Kylian Mbappé', 'Speed of light.', 149.0, None, '/static/img/products/card-mbappe.jpg', 'legendary', 'Legendary', 0, 'europe'),
+        (cat_ids['cards'], 'Hakim Ziyech', 'The Wizard.', 129.0, None, '/static/img/products/card-ziyech.jpg', 'epic', 'Epic', 0, 'africa'),
+        (cat_ids['cards'], 'Erling Haaland', 'The Terminator.', 159.0, None, '/static/img/products/card-haaland.jpg', 'rare', 'Rare', 0, 'europe'),
+        (cat_ids['cards'], 'Lionel Messi', 'The GOAT.', 399.0, None, '/static/img/products/card-messi.jpg', 'mythic', 'Iconic', 1, 'south-am'),
+        (cat_ids['cards'], 'Cristiano Ronaldo', 'Siuuu.', 399.0, None, '/static/img/products/card-ronaldo.jpg', 'mythic', 'Iconic', 1, 'europe')
     ]
     db.executemany('''
-        INSERT INTO products (category_id, name, description, price, old_price, image_url, emoji, badge, rarity, is_iconic, continent) 
-        VALUES (?,?,?,?,?,?,?,?,?,?,?)''', cards)
+        INSERT INTO products (category_id, name, description, price, old_price, image_url, badge, rarity, is_iconic, continent) 
+        VALUES (?,?,?,?,?,?,?,?,?,?)''', cards)
+
+    # Products - Boots
+    boots = [
+        (cat_ids['boots'], 'Adidas Predator Elite', 'Precision engineering for the masters of control.', 2499.0, 2899.0, '/static/img/products/predator.jpg', 'pro', 'Adidas'),
+        (cat_ids['boots'], 'Nike Mercurial Superfly', 'Engineered for explosive speed.', 2699.0, None, '/static/img/products/mercurial.jpg', 'speed', 'Nike'),
+        (cat_ids['boots'], 'Puma Future Ultimate', 'The fit of the future.', 2199.0, None, '/static/img/products/puma-future.jpg', 'agility', 'Puma')
+    ]
+    db.executemany('''
+        INSERT INTO products (category_id, name, description, price, old_price, image_url, badge, brand) 
+        VALUES (?,?,?,?,?,?,?,?)''', boots)
 
     # Products - Accessories
     accs = [
-        (cat_ids['accessories'], 'Luxury Watch Football Ed.', 'Premium timepiece.', 1499.0, None, '/static/img/products/acc-watch.jpg', '⌚', 'luxury'),
-        (cat_ids['accessories'], 'Ultra Cap', 'Streetwear vibes.', 149.0, None, '/static/img/products/acc-cap.jpg', '🧢', 'mode'),
-        (cat_ids['accessories'], 'Gold Bracelet', 'Football elegance.', 299.0, None, '/static/img/products/acc-bracelet.jpg', '📿', 'jewelry'),
-        (cat_ids['accessories'], 'Futura Scarf', 'Show your colors.', 89.0, None, '/static/img/products/acc-scarf.jpg', '🧣', 'fan'),
-        (cat_ids['accessories'], 'Leather Wallet', 'Sleek design.', 199.0, None, '/static/img/products/acc-wallet.jpg', '💼', 'premium'),
-        (cat_ids['accessories'], 'Elite Gym Bag', 'Gear for pros.', 349.0, None, '/static/img/products/acc-bag.jpg', '🎒', 'training')
+        (cat_ids['lifestyle'], 'Luxury Watch Football Ed.', 'Premium timepiece.', 1499.0, None, '/static/img/products/acc-watch.jpg', 'luxury'),
+        (cat_ids['lifestyle'], 'Ultra Cap', 'Streetwear vibes.', 149.0, None, '/static/img/products/acc-cap.jpg', 'mode'),
+        (cat_ids['lifestyle'], 'Gold Bracelet', 'Football elegance.', 299.0, None, '/static/img/products/acc-bracelet.jpg', 'jewelry'),
+        (cat_ids['lifestyle'], 'Futura Scarf', 'Show your colors.', 89.0, None, '/static/img/products/acc-scarf.jpg', 'fan'),
+        (cat_ids['lifestyle'], 'Leather Wallet', 'Sleek design.', 199.0, None, '/static/img/products/acc-wallet.jpg', 'premium'),
+        (cat_ids['lifestyle'], 'Elite Gym Bag', 'Gear for pros.', 349.0, None, '/static/img/products/acc-bag.jpg', 'training')
     ]
     db.executemany('''
-        INSERT INTO products (category_id, name, description, price, old_price, image_url, emoji, badge) 
-        VALUES (?,?,?,?,?,?,?,?)''', accs)
+        INSERT INTO products (category_id, name, description, price, old_price, image_url, badge) 
+        VALUES (?,?,?,?,?,?,?)''', accs)
 
     # Coupons
     db.executemany('INSERT INTO coupons (code, discount_percent) VALUES (?,?)', [('UCL30', 30), ('FOOTURA25', 25)])
 
-    # Admin User (password: admin123 - for demo purposes, hash it properly in real app)
-    # Simple hash for now or just plain text for this local dev project as per "easy local development"
-    db.execute('INSERT INTO users (username, email, password_hash, role) VALUES (?,?,?,?)', 
-               ('admin', 'admin@futura.com', 'pbkdf2:sha256:600000$admin_hash', 'admin'))
+    # Seed Users
+    admin_pass = generate_password_hash('admin123')
+    user_pass = generate_password_hash('user123')
+    
+    users = [
+        ('FUTURA', 'ADMIN', 'admin', 'admin@footura.com', '+212 600000000', admin_pass, 'admin'),
+        ('REGULAR', 'USER', 'user', 'user@footura.com', '+212 700000000', user_pass, 'user')
+    ]
+    
+    db.executemany('INSERT INTO users (first_name, last_name, username, email, phone, password_hash, role) VALUES (?,?,?,?,?,?,?)', users)
 
     db.commit()

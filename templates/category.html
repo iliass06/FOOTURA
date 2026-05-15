@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOOTURA | {{ category.upper() }} Collection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body class="category-view">
+
+    <!-- CUSTOM CURSOR -->
+    <div id="custom-cursor"></div>
+
+    <script>
+        // Global Auth State - Injected via Server to prevent race conditions
+        window.currentUserRole = "{{ session.get('role', 'guest') }}";
+    </script>
+
+    <!-- INTRO CINEMATIC -->
+    <div id="intro-overlay">
+        <div class="intro-logo">FOOTURA</div>
+    </div>
+
+    <!-- NAVIGATION LOGO (TOP CORNER) -->
+    <div id="nav-logo-mini" onclick="rebootStadium()">
+        F<span class="oo-green">OO</span>TURA
+    </div>
+
+    <!-- THEME & CART TOGGLES -->
+    <div class="toggles-wrapper">
+        <div id="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </div>
+        <div class="cart-toggle" onclick="window.location.href='/checkout'" style="display: flex; align-items: center; gap: 10px; padding: 20px 25px;">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span id="cart-count-nav">(0)</span>
+        </div>
+        <button id="auth-main-btn" class="btn-futura" style="width: auto; padding: 15px 30px; border-color: var(--gold-exact); color: var(--gold-exact); margin-top: 0;" onclick="openAuthModal()">CONNECT</button>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div style="position: absolute; top: 40px; left: 250px; z-index: 2002;">
+        {% set section_map = {'jerseys': 'vestiaire', 'balls': 'sphere', 'cards': 'legendes', 'boots': 'boots', 'lifestyle': 'lifestyle'} %}
+        <a href="/#{{ section_map.get(category, '') }}" class="btn-futura" style="width: auto; padding: 10px 30px; border-color: var(--gold-exact); color: var(--gold-exact); text-decoration: none;">← BACK TO STADIUM</a>
+    </div>
+
+    <main id="main-content" style="padding-top: 150px;">
+        <section id="category-section" style="min-height: 100vh;">
+            <div class="stadium-bg"></div>
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 60px;">
+                    <div>
+                        <h2 class="section-title" id="cat-title" style="margin-bottom: 0;">{{ category.upper() }}</h2>
+                    </div>
+                    {% if session.get('role') == 'admin' %}
+                        <button class="btn-futura btn-deploy" style="width: auto; padding: 15px 40px; margin-top: 0;" onclick="openAddModal('{{ category }}')">DEPLOY NEW {{ category[:-1].upper() if category.endswith('s') else category.upper() }}</button>
+                    {% endif %}
+
+                {% if category == 'boots' %}
+                <div class="filter-row brand-row" style="display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
+                    <button class="filter-btn active" onclick="loadProducts('boots', null, null, this)" style="background: var(--gray-dark); border: 1px solid var(--gold-exact); padding: 10px 20px; color: var(--gold-exact); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">ALL BRANDS</button>
+                    <button class="filter-btn" onclick="loadProducts('boots', 'brand', 'nike', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">NIKE</button>
+                    <button class="filter-btn" onclick="loadProducts('boots', 'brand', 'adidas', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">ADIDAS</button>
+                    <button class="filter-btn" onclick="loadProducts('boots', 'brand', 'puma', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">PUMA</button>
+                    <button class="filter-btn" onclick="loadProducts('boots', 'brand', 'underarmour', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">UNDER ARMOUR</button>
+                </div>
+                {% endif %}
+
+                {% if category == 'cards' %}
+                <div class="filter-row type-row" style="display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
+                    <button class="filter-btn active" onclick="loadProducts('cards', null, null, this)" style="background: var(--gray-dark); border: 1px solid var(--gold-exact); padding: 10px 20px; color: var(--gold-exact); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">ALL TYPES</button>
+                    <button class="filter-btn" onclick="loadProducts('cards', 'card_type', 'iconic', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">ICONIC</button>
+                    <button class="filter-btn" onclick="loadProducts('cards', 'card_type', 'legends', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">LEGENDS</button>
+                    <button class="filter-btn" onclick="loadProducts('cards', 'card_type', 'standard', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer;">STANDARD</button>
+                </div>
+                {% endif %}
+                </div>
+                
+                                {% if category == 'jerseys' %}
+                <div class="filters-container" style="margin-bottom: 60px; display: flex; flex-direction: column; gap: 30px;">
+                    <!-- Row 1: Leagues -->
+                    <div class="filter-row league-row" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;">
+                        <button class="filter-btn active" onclick="loadProducts('jerseys', null, null, this)" style="background: var(--gray-dark); border: 1px solid var(--gold-exact); padding: 10px 20px; color: var(--gold-exact); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">ALL LEAGUES</button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'league', 'laliga', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.2); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                            <img src="/static/logos/laliga.png" style="height: 20px; width: auto;" onerror="this.style.display='none'"> LA LIGA
+                        </button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'league', 'pl', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.2); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                            <img src="/static/logos/pl.png" style="height: 20px; width: auto;" onerror="this.style.display='none'"> PREMIER LEAGUE
+                        </button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'league', 'ligue1', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.2); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                            <img src="/static/logos/ligue1.png" style="height: 20px; width: auto;" onerror="this.style.display='none'"> LIGUE 1
+                        </button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'league', 'bundesliga', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.2); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                            <img src="/static/logos/bundesliga.png" style="height: 20px; width: auto;" onerror="this.style.display='none'"> BUNDESLIGA
+                        </button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'league', 'seriea', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.2); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                            <img src="/static/logos/seriea.png" style="height: 20px; width: auto;" onerror="this.style.display='none'"> SERIE A
+                        </button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'league', 'botola', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.2); padding: 10px 20px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                            <img src="/static/logos/botola.png" style="height: 20px; width: auto;" onerror="this.style.display='none'"> BOTOLA PRO
+                        </button>
+                    </div>
+                    <!-- Row 2: Continents -->
+                    <div class="filter-row continent-row" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button class="filter-btn active" onclick="loadProducts('jerseys', null, null, this)" style="background: var(--gray-dark); border: 1px solid var(--gold-exact); padding: 8px 15px; color: var(--gold-exact); font-family: var(--font-accent); letter-spacing: 1px; font-size: 0.8rem; cursor: pointer;">ALL CONTINENTS</button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'continent', 'africa', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 8px 15px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 1px; font-size: 0.8rem; cursor: pointer;">AFRICA</button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'continent', 'europe', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 8px 15px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 1px; font-size: 0.8rem; cursor: pointer;">EUROPE</button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'continent', 'america', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 8px 15px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 1px; font-size: 0.8rem; cursor: pointer;">AMERICA</button>
+                        <button class="filter-btn" onclick="loadProducts('jerseys', 'continent', 'asia', this)" style="background: var(--gray-dark); border: 1px solid rgba(201,150,63,0.1); padding: 8px 15px; color: var(--cream-soda); font-family: var(--font-accent); letter-spacing: 1px; font-size: 0.8rem; cursor: pointer;">ASIA</button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div id="{{ category }}-grid" class="product-grid">
+                    <!-- Products injected here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- PRODUCT DETAIL / CONFIG MODAL -->
+    <div id="product-detail-modal" class="premium-modal" style="display: none; align-items: center; justify-content: center; z-index: 5000;">
+        <div class="modal-content" style="max-width: 1100px; width: 95%; display: grid; grid-template-columns: 1.2fr 1fr; gap: 0; text-align: left; padding: 0; overflow: hidden; border-radius: 0; border: 1px solid var(--gold-exact); height: 85vh;">
+            <span class="close-modal" onclick="closeProductDetail()" style="z-index: 10;">&times;</span>
+            <div id="pd-image-container" style="background: linear-gradient(135deg, #0d1210 0%, #1b3d2f 100%); height: 100%; display: flex; align-items: center; justify-content: center; position: relative; border-right: 1px solid rgba(201, 150, 63, 0.2);">
+                <div style="position: absolute; top: 40px; left: 40px; font-family: var(--font-accent); color: var(--gold-exact); opacity: 0.3; font-size: 0.8rem; letter-spacing: 5px;">EQUIPMENT SPECIFICATIONS</div>
+                <img id="pd-image" src="" style="width: 85%; height: 85%; object-fit: contain; filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));">
+                
+                <div style="position: absolute; bottom: 40px; right: 40px; text-align: right;">
+                    <div id="pd-badge" style="display: inline-block; background: var(--gold-exact); color: var(--dark); padding: 5px 20px; font-family: var(--font-accent); font-size: 0.9rem; letter-spacing: 3px;">NEW EQUIPMENT</div>
+                </div>
+            </div>
+            <div id="pd-config-container" style="padding: 60px; display: flex; flex-direction: column; background: var(--gray-dark); overflow-y: auto;">
+                <h2 id="pd-name" style="font-family: var(--font-accent); font-size: 4rem; letter-spacing: 2px; margin-bottom: 10px; line-height: 0.9; color: var(--cream-soda);">PRODUCT NAME</h2>
+                <div id="pd-price" style="font-family: var(--font-accent); font-size: 2.5rem; color: var(--gold-exact); margin-bottom: 50px;">0 MAD</div>
+                <div class="config-options" style="display: flex; flex-direction: column; gap: 40px; flex-grow: 1;">
+                    <div class="config-group">
+                        <label style="display: block; font-size: 0.75rem; letter-spacing: 3px; margin-bottom: 20px; opacity: 0.5; font-weight: bold; color: var(--gold-exact);">SELECT DIMENSION</label>
+                        <div id="size-options" style="display: flex; gap: 12px; flex-wrap: wrap;"></div>
+                    </div>
+                    <div id="jersey-custom-fields" style="display: none; border-top: 1px solid rgba(201, 150, 63, 0.1); padding-top: 40px; margin-top: 10px;">
+                        <label style="display: block; font-size: 0.75rem; letter-spacing: 3px; margin-bottom: 20px; color: var(--gold-exact); font-weight: bold;">STADIUM PERSONALIZATION</label>
+                        <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 20px;">
+                            <div class="input-wrap">
+                                <span style="font-size: 0.6rem; letter-spacing: 1px; opacity: 0.4; margin-bottom: 5px; display: block;">BACK NAME</span>
+                                <input type="text" id="pd-back-name" placeholder="LEGEND" maxlength="12" class="futura-input" style="margin-bottom: 0; text-transform: uppercase; border-color: rgba(201, 150, 63, 0.2); padding: 15px;">
+                            </div>
+                            <div class="input-wrap">
+                                <span style="font-size: 0.6rem; letter-spacing: 1px; opacity: 0.4; margin-bottom: 5px; display: block;">NUMBER</span>
+                                <input type="number" id="pd-back-number" placeholder="10" min="1" max="99" class="futura-input" style="margin-bottom: 0; border-color: rgba(201, 150, 63, 0.2); padding: 15px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 50px; border-top: 1px solid rgba(201, 150, 63, 0.1); padding-top: 40px;">
+                    <button id="pd-add-btn" class="btn-futura" style="background: var(--gold-exact); color: var(--dark); border-color: var(--gold-exact); font-weight: bold; font-size: 1.2rem; padding: 25px;">ACQUIRE FOR SQUAD</button>
+                    <p style="text-align: center; font-size: 0.7rem; opacity: 0.5; margin-top: 20px; letter-spacing: 2px;">AUTHENTIC EQUIPMENT READY FOR DISPATCH</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px);" onclick="if(event.target === this) closeAuthModal();">
+        <div class="modal-content" style="background: var(--gray-dark); padding: 50px; max-width: 500px; width: 90%; border: 2px solid var(--gold-exact); position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <span id="close-modal" style="position: absolute; top: 20px; right: 25px; color: var(--cream-soda); font-size: 2rem; cursor: pointer;" onclick="closeAuthModal()">&times;</span>
+            <div id="login-view">
+                <h2 style="text-align: center; color: var(--gold-exact); font-family: var(--font-accent); font-size: 3rem; letter-spacing: 4px; margin-bottom: 30px;">LOGIN</h2>
+                <input type="text" id="login-username" placeholder="Username" class="futura-input">
+                <input type="password" id="login-password" placeholder="Password" class="futura-input">
+                <button class="btn-futura" style="width: 100%; background: var(--gold-exact); color: var(--dark);" onclick="submitLogin()">ENTER STADIUM</button>
+                <p style="text-align: center; margin-top: 25px;"><span style="color: white;">No account? </span><span onclick="switchToRegister()" style="color: var(--gold-exact); text-decoration: underline; cursor: pointer; font-weight: bold;">Register here</span></p>
+            </div>
+            <div id="register-view" style="display: none;">
+                <h2 style="text-align: center; color: var(--gold-exact); font-family: var(--font-accent); font-size: 3rem; letter-spacing: 4px; margin-bottom: 30px;">JOIN SQUAD</h2>
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <input type="text" id="reg-firstname" placeholder="First name" class="futura-input" style="flex: 1; margin-bottom: 0;">
+                    <input type="text" id="reg-lastname" placeholder="Last name" class="futura-input" style="flex: 1; margin-bottom: 0;">
+                </div>
+                <input type="text" id="reg-username" placeholder="Username" class="futura-input">
+                <input type="email" id="reg-email" placeholder="example@gmail.com" class="futura-input">
+                <input type="tel" id="reg-phone" placeholder="Ex : 0612345678" class="futura-input">
+                <input type="password" id="reg-password" placeholder="Password" class="futura-input">
+                <button class="btn-futura" style="width: 100%; background: var(--gold-exact); color: var(--dark);" onclick="submitRegister()">CREATE IDENTITY</button>
+                <p style="text-align: center; margin-top: 25px;"><span style="color: white;">Already a member? </span><span onclick="switchToLogin()" style="color: var(--gold-exact); text-decoration: underline; cursor: pointer; font-weight: bold;">Login</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UNIVERSAL CONFIRMATION MODAL -->
+    <div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30000; justify-content: center; align-items: center; backdrop-filter: blur(10px);" onclick="if(event.target === this) closeConfirmModal();">
+        <div class="modal-content" style="background: var(--gray-dark); padding: 50px; max-width: 500px; width: 90%; border: 2px solid #ff4444; position: relative; text-align: center; box-shadow: 0 0 50px rgba(255, 68, 68, 0.1);">
+            <h2 id="confirm-title" style="font-family: var(--font-accent); color: #ff4444; font-size: 2.5rem; letter-spacing: 3px; margin-bottom: 20px;">CONFIRM ACTION</h2>
+            <p id="confirm-msg" style="font-size: 0.9rem; opacity: 0.7; letter-spacing: 1px; margin-bottom: 40px; line-height: 1.6;">ARE YOU SURE YOU WANT TO PROCEED WITH THIS PERMANENT REMOVAL?</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <button class="btn-futura" style="margin-top: 0; background: transparent; border-color: rgba(242, 232, 207, 0.2); color: var(--cream-soda);" onclick="closeConfirmModal()">CANCEL</button>
+                <button id="confirm-action-btn" class="btn-futura" style="margin-top: 0; background: #ff4444; border-color: #ff4444; color: white;">CONFIRM</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS MODULES -->
+    {% if session.get('role') != 'admin' %}
+    <footer style="background: transparent; padding: 40px 0; margin-top: 100px; border-top: 1px solid rgba(242, 232, 207, 0.05);">
+        <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; font-family: var(--font-main);">
+            <div>
+                © 2026 FOOTURA. 
+                <a href="https://www.instagram.com/iliass_elfadili/" target="_blank" style="color: inherit; text-decoration: none; margin-left: 30px;">INSTAGRAM</a>
+                <a href="mailto:footurastore@gmail.com" style="color: inherit; text-decoration: none; margin-left: 20px;">EMAIL</a>
+            </div>
+            <div>
+                &lt;/&gt; DEVELOPED WITH <span style="color: #ff4444;">❤</span> BY 
+                <a href="https://linkedin.com/in/iliass-el-fadili" target="_blank" style="color: var(--gold-exact); text-decoration: none; font-weight: bold;">ILIASS EL FADILI</a> & 
+                <a href="https://www.linkedin.com/in/achraf-el-haouari-08a4a6299/" target="_blank" style="color: var(--gold-exact); text-decoration: none; font-weight: bold;">ACHRAF EL HAOUARI</a>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- JS MODULES -->
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/products.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts('{{ category }}', '', null);
+        });
+    </script>
+
+    
+    
+    
+    <!-- ADMIN EDIT/ADD MODAL -->
+    <div id="admin-edit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(10px);" onclick="if(event.target === this) closeEditModal();">
+        <div class="modal-content" style="background: var(--gray-dark); padding: 50px; max-width: 700px; width: 90%; border: 2px solid var(--gold-exact); position: relative; max-height: 90vh; overflow-y: auto;">
+            <span style="position: absolute; top: 20px; right: 25px; color: var(--cream-soda); font-size: 2rem; cursor: pointer;" onclick="closeEditModal()">&times;</span>
+            <h2 id="modal-title" style="font-family: var(--font-accent); color: var(--gold-exact); margin-bottom: 30px; letter-spacing: 3px;">MODIFY EQUIPMENT INTEL</h2>
+            <input type="hidden" id="edit-product-id">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div id="edit-category-group" class="input-group" style="grid-column: span 2;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">CATEGORY</label>
+                    <select id="edit-category" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent); outline: none;">
+                        <option value="jerseys">JERSEYS</option>
+                        <option value="balls">BALLS</option>
+                        <option value="cards">CARDS</option>
+                        <option value="boots">BOOTS</option>
+                        <option value="lifestyle">LIFESTYLE</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="grid-column: span 2;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">PRODUCT NAME</label>
+                    <input type="text" id="edit-name" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent);">
+                </div>
+
+                <div class="input-group" style="grid-column: span 2;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">PRICE (MAD)</label>
+                    <input type="number" id="edit-price" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent);">
+                </div>
+
+                <!-- TACTICAL FILTERS -->
+                <div id="edit-league-group" class="input-group" style="grid-column: span 2; display: none;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">LEAGUE</label>
+                    <select id="edit-league" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent); outline: none;">
+                        <option value="laliga">LA LIGA</option>
+                        <option value="pl">PREMIER LEAGUE</option>
+                        <option value="ligue1">LIGUE 1</option>
+                        <option value="bundesliga">BUNDESLIGA</option>
+                        <option value="seriea">SERIE A</option>
+                        <option value="botola">BOTOLA PRO</option>
+                        <option value="nations">INTERNATIONAL</option>
+                    </select>
+                </div>
+
+                <div id="edit-continent-group" class="input-group" style="grid-column: span 2; display: none;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">CONTINENT</label>
+                    <select id="edit-continent" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent); outline: none;">
+                        <option value="africa">AFRICA</option>
+                        <option value="europe">EUROPE</option>
+                        <option value="america">AMERICA</option>
+                        <option value="asia">ASIA</option>
+                        <option value="australia">AUSTRALIA</option>
+                    </select>
+                </div>
+
+                <div id="edit-brand-group" class="input-group" style="grid-column: span 2; display: none;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">BRAND</label>
+                    <select id="edit-brand" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent); outline: none;">
+                        <option value="nike">NIKE</option>
+                        <option value="adidas">ADIDAS</option>
+                        <option value="puma">PUMA</option>
+                        <option value="newbalance">NEW BALANCE</option>
+                        <option value="umbro">UMBRO</option>
+                        <option value="kipsta">KIPSTA</option>
+                    </select>
+                </div>
+
+                <div id="edit-card-type-group" class="input-group" style="grid-column: span 2; display: none;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">CARD TYPE</label>
+                    <select id="edit-card-type" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent); outline: none;">
+                        <option value="iconic">ICONIC</option>
+                        <option value="legends">LEGENDS</option>
+                        <option value="standard">STANDARD</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="grid-column: span 2;">
+                    <label style="display:block; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; opacity:0.6;">IMAGE URL (OR UPLOAD BELOW)</label>
+                    <input type="text" id="edit-image" style="width: 100%; background: var(--dark); border: 1px solid rgba(242, 232, 207, 0.2); color: var(--cream-soda); padding: 15px; font-family: var(--font-accent); margin-bottom: 10px;">
+                    <input type="file" id="edit-file" accept="image/*" style="width: 100%; color: var(--gold-exact); font-family: var(--font-accent); font-size: 0.8rem;">
+                </div>
+            </div>
+            <button id="btn-save-product" class="btn-futura" style="width: 100%; margin-top: 30px; background: var(--gold-exact); color: var(--dark);">SAVE CHANGES</button>
+        </div>
+    </div>
+
+</body>
+</html>
